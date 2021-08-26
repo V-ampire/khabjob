@@ -6,14 +6,19 @@ verify_ssl = true
 [dev-packages]
 ipython = "*"
 pytest-aiohttp = "*"
+faker = "*"
+pytest-mock = "*"
 
 [packages]
 aiohttp = {extras = ["speedups"],version = "*"}
-aiopg = "*"
+aiopg = {extras = ["sa"],version = "*"}
 beautifulsoup4 = "*"
 lxml = "*"
 environs = "*"
 aiofiles = "*"
+pytz = "*"
+alembic = "*"
+click = "*"
 
 [requires]
 python_version = "3.8"

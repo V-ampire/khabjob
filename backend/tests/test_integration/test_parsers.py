@@ -8,7 +8,7 @@ import pytest
 
 
 @pytest.mark.skip(reason="no way of currently testing this")
-async def test_farpost():
+async def test_farpost(loop):
     parser_config = config.PARSERS_CONFIG['farpost']
 
     async with aiohttp.ClientSession() as session:
@@ -22,7 +22,7 @@ async def test_farpost():
             assert vacancy['source_name'] == parser.name
 
 
-async def test_hh():
+async def test_hh(loop):
     parser_config = config.PARSERS_CONFIG['hh']
 
     async with aiohttp.ClientSession() as session:
@@ -36,7 +36,7 @@ async def test_hh():
             assert vacancy['source_name'] == parser.name
 
 
-async def test_superjob():
+async def test_superjob(loop):
     parser_config = config.PARSERS_CONFIG['superjob']
 
     async with aiohttp.ClientSession() as session:
@@ -50,7 +50,7 @@ async def test_superjob():
             assert vacancy['source_name'] == parser.name
 
 
-async def test_vk():
+async def test_vk(loop):
     parser_config = config.PARSERS_CONFIG['vk']
 
     async with aiohttp.ClientSession() as session:

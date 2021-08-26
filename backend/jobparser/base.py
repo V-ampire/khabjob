@@ -66,7 +66,7 @@ class BaseParser():
         Return vacancies data as list of dicts in format:
         [
             {
-                'title': 'vacancy-title', 
+                'name': 'vacancy-name', 
                 'source': 'link-to-vacancy', 
                 'source_name': 'source-name'
             },
