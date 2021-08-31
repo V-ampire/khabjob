@@ -5,8 +5,10 @@ from unittest import mock
 from alembic.config import Config
 from alembic.command import upgrade
 from aiopg.sa import create_engine
+from sqlalchemy import insert
 
 from core.db import utils
+from core.db.schema import vacancies_table
 from config import POSTGRES_CONFIG, BASE_DIR
 
 
@@ -25,15 +27,15 @@ def postgres():
 
     Return dsn for created database.    
     """
-    utils.setup_db()
+    utils.create_db()
     try:
         yield utils.get_postgres_dsn()
     finally:
-        utils.teardown_db()
+        utils.drop_db()
 
 
 @pytest.fixture
-def db(postgres):
+def migrated_postgres(postgres):
     """Apply migrations for test db."""
     alembic_config = Config(str(BASE_DIR.joinpath('alembic.ini')))
     alembic_config.set_main_option("sqlalchemy.url", postgres)
@@ -42,9 +44,9 @@ def db(postgres):
 
 
 @pytest.fixture
-async def aio_engine(loop, db):
+async def aio_engine(loop, migrated_postgres):
     """Return async engine for test database."""
-    engine = await create_engine(db)
+    engine = await create_engine(migrated_postgres)
     try:
         yield engine
     finally:
@@ -67,6 +69,18 @@ def fake_vacancies_data(faker):
                 })
         return vacancies_data
     return gen_vacancies
+
+
+@pytest.fixture
+async def create_vacancy(loop, aio_engine, fake_vacancies_data):
+    async def create(**options):
+        vacancy_data = fake_vacancies_data(1, 1)[0]
+        vacancy_data.update(**options)
+        async with aio_engine.acquire() as conn:
+            stmt = insert(vacancies_table).values(**vacancy_data)
+            await conn.execute(stmt)
+        return vacancy_data
+    return create
 
 
 @pytest.fixture

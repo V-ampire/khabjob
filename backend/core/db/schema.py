@@ -1,9 +1,14 @@
+"""
+Describing of database entities.
+"""
 from core.utils import now_with_tz
 
 from sqlalchemy import (
-    MetaData, Table, Column,
-    Integer, String, Date, Boolean
+    MetaData, Table, Column, Computed,
+    Integer, String, Date, Boolean, Index
 )
+from sqlalchemy import func, text
+from sqlalchemy.dialects.postgresql import TSVECTOR
 
 
 metadata = MetaData()
@@ -12,11 +17,14 @@ metadata = MetaData()
 vacancies_table = Table(
     'vacancies',
     metadata,
-    Column('vacancy_id', Integer, primary_key=True),
+    Column('id', Integer, primary_key=True),
     Column('created_at', Date, default=now_with_tz),
     Column('modified_at', Date, default=now_with_tz, onupdate=now_with_tz),
-    Column('name', String(128), nullable=False),
-    Column('source', String(128), nullable=False, unique=True),
+    Column('name', String(264), nullable=False),
+    Column('source', String(128), nullable=True, unique=True),
     Column('source_name', String(16), nullable=False),
-    Column('is_published', Boolean, server_default='f', nullable=False)
+    Column('description', String(1024), nullable=True),
+    Column('is_published', Boolean, server_default='t', nullable=False),
+    Column('search_index', TSVECTOR, Computed(text("to_tsvector('russian', name)"))),
+    Index("vacancies_idx_column", 'search_index', postgresql_using='gin')
 )

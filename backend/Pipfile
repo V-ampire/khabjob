@@ -19,6 +19,7 @@ aiofiles = "*"
 pytz = "*"
 alembic = "*"
 click = "*"
+pydantic = "*"
 
 [requires]
 python_version = "3.8"

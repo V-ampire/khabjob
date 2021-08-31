@@ -1,3 +1,4 @@
+import asyncio
 import aiohttp
 from aiopg.sa import create_engine
 from typing import List, Optional, Dict
@@ -27,13 +28,19 @@ async def parse_vacancies_to_db(parsers: List[str]=[]):
     else:
         configs = PARSERS_CONFIG
 
+    tasks = []
+
     async with aiohttp.ClientSession() as session:
         for parser_name in configs.keys():
-            parser_class = PARSERS_REGISTRY[parser_name]
-            parser = parser_class(session, configs[parser_name])
-            vacancies = await parser.get_vacancies()
-            async with create_engine(get_postgres_dsn()) as aio_engine:
-                async with aio_engine.acquire() as conn:
+            if configs[parser_name]['is_active']:
+                parser_class = PARSERS_REGISTRY[parser_name]
+                parser = parser_class(session, configs[parser_name])
+                tasks.append(parser.get_vacancies())
+        
+        async with create_engine(get_postgres_dsn()) as aio_engine:
+            async with aio_engine.acquire() as conn:
+                for task in asyncio.as_completed(tasks):
+                    vacancies = await task
                     await create_vacancy_batch(conn, vacancies)
 
 
@@ -44,15 +51,16 @@ async def run_parsers(parsers: List[str]=[]) -> List[Dict[str, str]]:
     else:
         configs = PARSERS_CONFIG
 
-    result = []
+    tasks = []
 
     async with aiohttp.ClientSession() as session:
         for parser_name in configs.keys():
-            parser_class = PARSERS_REGISTRY[parser_name]
-            parser = parser_class(session, configs[parser_name])
-            vacancies = await parser.get_vacancies()
-            result.extend(vacancies)
+            if configs[parser_name]['is_active']:
+                parser_class = PARSERS_REGISTRY[parser_name]
+                parser = parser_class(session, configs[parser_name])
+                tasks.append(parser.get_vacancies())
+        vacancies = await asyncio.gather(*tasks)
+    return vacancies
 
-    return result
 
 

@@ -1,8 +1,12 @@
-from config import POSTGRES_CONFIG
+from config import POSTGRES_CONFIG, BASE_DIR
 
 from aiopg.sa import create_engine as create_aioengine
-from sqlalchemy import create_engine, MetaData
-from typing import Dict
+from alembic.config import Config
+from alembic.command import upgrade
+from sqlalchemy import create_engine, MetaData, Table, Column
+from sqlalchemy.dialects.postgresql import TSVECTOR
+
+from typing import Dict, List
 
 
 def get_postgres_dsn(**options) -> str:
@@ -19,7 +23,12 @@ def get_postgres_dsn(**options) -> str:
     )
 
 
-def setup_db(**options) -> None:
+def except_tsvector_columns(table: Table) -> List[Column]:
+    """Return table columns except postgresql tsvector columns."""
+    return list(filter(lambda c: not isinstance(c.type, TSVECTOR), table.c))
+
+
+def create_db(**options) -> None:
     """Create database."""
     db_name = options.get('database', POSTGRES_CONFIG['POSTGRES_DB'])
     db_user = options.get('user', POSTGRES_CONFIG['POSTGRES_USER'])
@@ -37,7 +46,7 @@ def setup_db(**options) -> None:
         conn.close()
 
 
-def teardown_db(**options) -> None:
+def drop_db(**options) -> None:
     """Drop database."""
     db_name = options.get('database', POSTGRES_CONFIG['POSTGRES_DB'])
     db_user = options.get('user', POSTGRES_CONFIG['POSTGRES_USER'])
@@ -57,6 +66,13 @@ def teardown_db(**options) -> None:
         conn.execute("DROP DATABASE IF EXISTS %s" % db_name)
     finally:
         conn.close()
+
+
+def apply_migrations():
+    """Apply database migrations."""
+    alembic_config = Config(str(BASE_DIR.joinpath('alembic.ini')))
+    alembic_config.set_main_option("sqlalchemy.url", get_postgres_dsn())
+    upgrade(alembic_config, 'head')
 
 
 

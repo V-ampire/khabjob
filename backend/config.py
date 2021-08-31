@@ -20,7 +20,7 @@ PARSERS_CONFIG = {
     },
     "farpost": {
         "parse_url": "https://www.farpost.ru/khabarovsk/job/vacancy",
-        "is_active": True
+        "is_active": False
     },
     "hh": {
         "parse_url": "https://api.hh.ru/vacancies/",

@@ -1,13 +1,14 @@
 """
 Command line interface.
 """
+from aiohttp import web
 import asyncio
 import click
 from typing import List
 
-from core.db.utils import setup_db
+from api.application import init_app
+from core.db.utils import create_db, apply_migrations
 from jobparser.utils import parse_vacancies_to_db, run_parsers
-# run app
 
 
 async def echo_parsers_results(parsers: List[str]=[]):
@@ -22,7 +23,10 @@ def cli():
 
 @click.command(name='init_db')
 def initdb():
-    setup_db()
+    create_db()
+    apply_migrations()
+    asyncio.run(parse_vacancies_to_db())
+
 
 
 @click.command(name='update_vacancies')
@@ -37,9 +41,16 @@ def runparsers(parsers: List[str]):
     asyncio.run(echo_parsers_results(parsers))
 
 
+@click.command(name='run_app')
+def runapp():
+    app = init_app({})
+    web.run_app(app)
+
+
 cli.add_command(updatevacancies)
 cli.add_command(runparsers)
 cli.add_command(initdb)
+cli.add_command(runapp)
 
 
 if __name__ == '__main__':
