@@ -20,6 +20,9 @@ components:
           type: string
         description:
           type: string
+        modified_at:
+          type: string
+          format: date
     PublishedVacancyList:
       description: Список опубликованных вакансий.
       type: object

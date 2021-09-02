@@ -1,6 +1,7 @@
 import asyncio
 import aiohttp
 from aiopg.sa import create_engine
+import logging
 from typing import List, Optional, Dict
 
 from jobparser.parsers import HHParser, SuperjobParser, VkParser, FarpostParser
@@ -15,6 +16,9 @@ PARSERS_REGISTRY = {
     'hh': HHParser,
     'vk': VkParser,
 }
+
+
+logger = logging.getLogger(__name__)
 
 
 async def parse_vacancies_to_db(parsers: List[str]=[]):
@@ -41,7 +45,12 @@ async def parse_vacancies_to_db(parsers: List[str]=[]):
             async with aio_engine.acquire() as conn:
                 for task in asyncio.as_completed(tasks):
                     vacancies = await task
-                    await create_vacancy_batch(conn, vacancies)
+                    if len(vacancies) > 0:
+                        await create_vacancy_batch(conn, vacancies)
+                        logger.info('Saved {0} vacancies from {1}'.format(
+                            len(vacancies),
+                            vacancies[0]['source_name']
+                        ))
 
 
 async def run_parsers(parsers: List[str]=[]) -> List[Dict[str, str]]:

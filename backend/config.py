@@ -47,4 +47,9 @@ POSTGRES_CONFIG = {
 }
 
 
+API_CONFIG = {
+    'API_ROOT': env.str('API_ROOT'),
+}
+
+
 TIMEZONE = 'Asia/Vladivostok'

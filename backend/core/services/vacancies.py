@@ -7,7 +7,7 @@ from core.db.utils import except_tsvector_columns
 from aiopg.sa import SAConnection
 from aiopg.sa.result import RowProxy
 from datetime import date
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, over, func
 
 from typing import List, Dict, Optional
 
@@ -27,14 +27,17 @@ async def create_vacancy_batch(conn: SAConnection, vacancies_data: List[Dict[str
 async def filter_vacancies(conn: SAConnection, 
     limit: Optional[int]=None, offset: int=0, **options) -> List[RowProxy]:
     """
-    Return list of filtered with options vacancies.
+    Return list of filtered with options vacancies and count of all filtered items.
     
     :param limit: Number of vacancies to return.
     :param offset: Number of vacancies to skip before to collect.
     :param options: Options to filter vacancies.
     """
     columns = except_tsvector_columns(vacancies_table)
-    stmt = select(*columns).filter_by(**options).limit(limit).offset(offset)
+    stmt = select(*columns, func.count().over().label("count"))
+    stmt = stmt.filter_by(**options).limit(limit).offset(offset).order_by(
+                vacancies_table.c.modified_at, vacancies_table.c.source_name,
+            )
     result = await conn.execute(stmt)
     return await result.fetchall()
 
@@ -42,7 +45,7 @@ async def filter_vacancies(conn: SAConnection,
 async def search_vacancies(conn: SAConnection, 
                             date_from: Optional[date]=None, date_to: Optional[date]=None, 
                             search_query: Optional[str]=None, published_only: bool=True, 
-                            limit: Optional[int]=None, offset: int=0):
+                            limit: Optional[int]=None, offset: int=0) -> List[RowProxy]:
     """
     Search vacancies by params.
 
@@ -52,10 +55,12 @@ async def search_vacancies(conn: SAConnection,
     :param published_only: If true, return only published vacancies.
     :param limit: Number of vacancies to return.
     :param offset: Number of vacancies to skip before to collect.
+
+    :return: list of found vacancies and count of all found items.
     """
     columns = except_tsvector_columns(vacancies_table)
     if published_only:
-        stmt = select(*columns).filter_by(is_published=True)
+        stmt = select(*columns, func.count().over().label("count")).filter_by(is_published=True)
     else:
         stmt = select(*columns)
 
@@ -68,7 +73,9 @@ async def search_vacancies(conn: SAConnection,
     if search_query is not None:
         stmt = stmt.where(vacancies_table.c.search_index.match(str(search_query)))
 
-    stmt = stmt.limit(limit).offset(offset)
+    stmt = stmt.limit(limit).offset(offset).order_by(
+        vacancies_table.c.modified_at, vacancies_table.c.source_name
+    )
     result = await conn.execute(stmt)
     return await result.fetchall()
     

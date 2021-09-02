@@ -56,6 +56,7 @@ async def test_filter_vacancies_without_options_and_default_pagination(aio_engin
         assert r['name'] == e['name']
         assert r['source'] == e['source']
         assert r['source_name'] == e['source_name']
+        assert r['count'] == len(results)
         assert not 'search_index' in r.keys()
     
 
@@ -72,6 +73,7 @@ async def test_filter_vacancies_pagination(aio_engine, create_vacancy):
         assert r['name'] == e['name']
         assert r['source'] == e['source']
         assert r['source_name'] == e['source_name']
+        assert r['count'] == offset * 2
         assert not 'search_index' in r.keys()
 
     
@@ -79,12 +81,13 @@ async def test_filter_vacancies_with_options(aio_engine, create_vacancy):
     expected = [await create_vacancy() for _ in range(6)][0]
 
     async with aio_engine.acquire() as conn:
-        result = await vacancies.filter_vacancies(conn, source=expected['source'])
+        results = await vacancies.filter_vacancies(conn, source=expected['source'])
 
-    assert expected['name'] == result[0]['name']
-    assert expected['source'] == result[0]['source']
-    assert expected['source_name'] == result[0]['source_name']
-    assert not 'search_index' in result[0].keys()
+    assert expected['name'] == results[0]['name']
+    assert expected['source'] == results[0]['source']
+    assert expected['source_name'] == results[0]['source_name']
+    assert results[0]['count'] == len(results)
+    assert not 'search_index' in results[0].keys()
 
 
 async def test_filter_vacancies_with_bool_option(aio_engine, create_vacancy):
@@ -98,6 +101,7 @@ async def test_filter_vacancies_with_bool_option(aio_engine, create_vacancy):
     assert expected['source'] == result[0]['source']
     assert expected['source_name'] == result[0]['source_name']
     assert not result[0]['is_published']
+    assert result[0]['count'] == len(result)
     assert not 'search_index' in result[0].keys()
         
 
@@ -124,24 +128,27 @@ async def test_search_vacancies_by_dates(aio_engine, create_vacancy):
         assert r['name'] == e['name']
         assert r['source'] == e['source']
         assert r['source_name'] == e['source_name']
+        assert r['count'] == len(expected_from)
         assert not 'search_index' in r.keys()
-        assert result[0]['is_published']
+        assert r['is_published']
 
     assert len(results_to) == len(expected_to)
     for r, e in zip(results_to, expected_to):
         assert r['name'] == e['name']
         assert r['source'] == e['source']
         assert r['source_name'] == e['source_name']
+        assert r['count'] == len(expected_to)
         assert not 'search_index' in r.keys()
-        assert result[0]['is_published']
+        assert r['is_published']
 
     assert len(results_from_to) == len(expected_from_to)
     for r, e in zip(results_from_to, expected_from_to):
         assert r['name'] == e['name']
         assert r['source'] == e['source']
         assert r['source_name'] == e['source_name']
+        assert r['count'] == len(expected_from_to)
         assert not 'search_index' in r.keys()
-        assert result[0]['is_published']
+        assert r['is_published']
 
 
 async def test_search_vacancies_by_query(aio_engine, create_vacancy):
@@ -157,6 +164,7 @@ async def test_search_vacancies_by_query(aio_engine, create_vacancy):
     assert expected['source'] == result[0]['source']
     assert expected['source_name'] == result[0]['source_name']
     assert result[0]['is_published']
+    assert result[0]['count'] == len(result)
     assert not 'search_index' in result[0].keys()
     
 
@@ -192,6 +200,7 @@ async def test_search_vacancies_by_dates_and_query(aio_engine, create_vacancy):
     assert expected['name'] == result[0]['name']
     assert expected['source'] == result[0]['source']
     assert expected['source_name'] == result[0]['source_name']
+    assert result[0]['count'] == len(result)
     assert result[0]['is_published']
     assert not 'search_index' in result[0].keys()
 
@@ -208,6 +217,7 @@ async def test_search_vacancies_defaut(aio_engine, create_vacancy):
         assert r['name'] == e['name']
         assert r['source'] == e['source']
         assert r['source_name'] == e['source_name']
+        assert r['count'] == len(results)
         assert not 'search_index' in r.keys()
 
 

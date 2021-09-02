@@ -4,9 +4,10 @@ Command line interface.
 from aiohttp import web
 import asyncio
 import click
+import logging
 from typing import List
 
-from api.application import init_app
+from api.app import init_app
 from core.db.utils import create_db, apply_migrations
 from jobparser.utils import parse_vacancies_to_db, run_parsers
 
@@ -54,4 +55,5 @@ cli.add_command(runapp)
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
     cli()
