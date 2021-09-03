@@ -23,6 +23,18 @@ components:
         modified_at:
           type: string
           format: date
+    PublishedVacancyCreate:
+      description: Данные для создания вакансии.
+      type: object
+      properties:
+        name:
+          type: string
+        source:
+          type: string
+        source_name:
+          type: string
+        description:
+          type: string
     PublishedVacancyList:
       description: Список опубликованных вакансий.
       type: object
@@ -102,14 +114,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PublishedVacancy'
+              $ref: '#/components/schemas/PublishedVacancyCreate'
       responses:
         '201':
           description: Вакансия на модерации.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublishedVacancy'
+                $ref: '#/components/schemas/PublishedVacancyCreate'
   /public/vacancies/{id}:
     get:
       tags:

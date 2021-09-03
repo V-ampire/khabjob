@@ -1,11 +1,13 @@
-from aiohttp import web
+from aiohttp import web, PAYLOAD_REGISTRY
 from aiopg.sa import create_engine
 
 from api.routes import setup_routes
+from api.payloads import JsonPayload
 
 from core.db.utils import get_postgres_dsn
 
-from typing import Dict
+from typing import Dict, Mapping
+from types import MappingProxyType
 
 
 async def setup_db(app: web.Application):
@@ -28,6 +30,9 @@ async def init_app(config: Dict={}) -> web.Application:
     setup_routes(app)
 
     app.cleanup_ctx.append(setup_db)
+
+    # Serializing json in http response.
+    PAYLOAD_REGISTRY.register(JsonPayload, (Mapping, MappingProxyType))
 
     return app
 

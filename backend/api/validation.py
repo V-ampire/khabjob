@@ -5,7 +5,7 @@ from aiohttp.web import Response, HTTPBadRequest
 from datetime import date
 import json
 import logging
-from pydantic import BaseModel, ValidationError, validator
+from pydantic import BaseModel, ValidationError, validator,  StrictBool
 from pytz import timezone
 from typing import List, Optional, Dict, Any, Union
 
@@ -15,29 +15,37 @@ from config import TIMEZONE
 logger = logging.getLogger(__name__)
 
 
-class PublishedVacancy(BaseModel):
-    """Pydantic model to validate published vacancy data."""
-    id: int
+class PublishedVacancyCreate(BaseModel):
+    """Pydantic model to validate published vacancy data to create."""
     name: str
     source: Optional[str]
     source_name: str
     description: Optional[str]
-    modified_at: date
+    is_published: StrictBool
 
+    class Config:
+        extra = 'forbid'
 
-class PublishedVacancyList(BaseModel):
-    """Pydantic model to validate published list vacancy data."""
-    count: int
-    next: Optional[str]
-    previous: Optional[str]
-    results: List[PublishedVacancy]
+    @validator('is_published')
+    def validate_is_published_only_false(cls, is_published):
+        if is_published:
+            raise TypeError('Public added vacancy cant be pusblished.')
+        return is_published
 
+    @validator('source', 'description')
+    def validate_source_or_description_required(cls, values):
+        """For public added vacancies should be source or description."""
+        source, description = values
+        if source is None and description is None:
+            raise ValueError('Vacancy must have source or description.')
+    
 
 class SearchOptions(BaseModel):
     """Pydantic model to validate serach options."""
     date_from: Optional[date]
     date_to: Optional[date]
     search_query: Optional[str]
+    source_name: Optional[str]
 
     @validator('date_from', pre=True)
     def validate_date_from_format(cls, date_from):
@@ -52,35 +60,16 @@ def validate_date_field_type(raw_date: Any) -> date:
         return raw_date
     else:
         raise TypeError('Invalid date format.')
+  
 
-
-def validate_response_data(schema: BaseModel, data: Dict[str, Any]) -> Response:
+def validate_request_data(schema: BaseModel, data: Dict[str, Any]):
     """
-    Validate response data and return aiohttp Response.
- 
-    :param schema: Validation schema.
-    :param data: Response data.
-
-    If data is not valid return response with empty dict.
-    """
-    try:
-        response_json = schema(**data).json()
-    except ValidationError as exc:
-        error_msg = '{0},\nResponse data: {1}'.format(exc, data)
-        logger.error(error_msg)
-        response_json = json.dumps({})
-
-    return Response(text=response_json, content_type='application/json')
-    
-
-def validate_request_payload(schema: BaseModel, payload: Dict[str, Any]):
-    """
-    Validate payload for such methods as POST, PUT, PATCH.
+    Validate data for such methods as POST, PUT, PATCH.
 
     :param schema: Validation schema.
-    :param data: Request payload.
+    :param data: Request data.
 
-    If payload is not valid raise Bad request error.
+    If data is not valid raise Bad request error.
     """
     try:
         return schema(**payload).dict()

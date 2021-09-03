@@ -76,11 +76,11 @@ def test_validate_request_query_with_valid_params():
     assert result == {'id': 123}
 
 
-def test_validate_request_payload_with_invalid_payload(caplog):
+def test_validate_request_data_with_invalid_payload(caplog):
     post_data = {'username': 'ObiOne', 'is_jedi': 'yes'}
     with pytest.raises(HTTPBadRequest) as err:
         error = err
-        validation.validate_request_payload(PostData, post_data)
+        validation.validate_request_data(PostData, post_data)
     assert str(post_data) in caplog.text
     assert error.value.text == json.dumps(
         {'is_jedi': 'value is not a valid boolean'}
@@ -88,7 +88,7 @@ def test_validate_request_payload_with_invalid_payload(caplog):
     assert error.value.content_type == 'application/json'
 
 
-def test_validate_request_payload_with_valid_payload(caplog):
+def test_validate_request_data_with_valid_payload(caplog):
     post_data = {'username': 'ObiOne', 'is_jedi': True}
-    assert validation.validate_request_payload(PostData, post_data) == post_data
+    assert validation.validate_request_data(PostData, post_data) == post_data
     

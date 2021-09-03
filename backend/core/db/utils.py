@@ -3,9 +3,11 @@ from config import POSTGRES_CONFIG, BASE_DIR
 from aiopg.sa import create_engine as create_aioengine
 from alembic.config import Config
 from alembic.command import upgrade
+from psycopg2.errors import UniqueViolation
 from sqlalchemy import create_engine, MetaData, Table, Column
 from sqlalchemy.dialects.postgresql import TSVECTOR
 
+import re
 from typing import Dict, List
 
 
@@ -26,6 +28,17 @@ def get_postgres_dsn(**options) -> str:
 def except_tsvector_columns(table: Table) -> List[Column]:
     """Return table columns except postgresql tsvector columns."""
     return list(filter(lambda c: not isinstance(c.type, TSVECTOR), table.c))
+
+
+def parse_unique_violation_fields(error: UniqueViolation) -> Dict[str, str]:
+    """Parse UniqueViolation error and return field that did not passed constraint."""
+    field_str_list = re.findall(r'\(.+\)=\(.+\)', error.pgerror)
+    # Generate dict {'field_name': 'value'} from strings
+    return {
+        k.strip('()'): v.strip('()') for k,v in [
+            elem.split(sep='=') for elem in field_str_list
+        ]
+    }
 
 
 def create_db(**options) -> None:
