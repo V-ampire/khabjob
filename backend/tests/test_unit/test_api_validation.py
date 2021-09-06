@@ -6,8 +6,6 @@ import pytest
 
 from api import validation
 
-from core.utils import now_with_tz
-
 
 class User(BaseModel):
     username: str
@@ -26,7 +24,7 @@ class PostData(BaseModel):
 
 
 def test_validate_date_field_type_with():
-    date_date = now_with_tz().date()
+    date_date = datetime.now().date()
     valid_date_str = date_date.isoformat()
     invalid_date_str = '2021.09.02'
     date_int = 123
@@ -40,26 +38,6 @@ def test_validate_date_field_type_with():
         assert validation.validate_date_field_type(date_int) == date_date
     with pytest.raises(TypeError):
         assert validation.validate_date_field_type(date_float) == date_date
-
-
-def test_validate_response_data_with_invalid_data(caplog):
-    result = validation.validate_response_data(
-        User, {'username': {}}
-    )
-    assert isinstance(result, Response)
-    assert result.text == json.dumps({})
-    assert result.content_type == 'application/json'
-    assert 'username' in caplog.text
-    assert str({'username': {}}) in caplog.text
-
-
-def test_validate_response_data_with_valid_data():
-    result = validation.validate_response_data(
-        User, {'username': 'Yoda777Master'}
-    )
-    assert isinstance(result, Response)
-    assert result.text == User(username='Yoda777Master').json()
-    assert result.content_type == 'application/json'
 
 
 def test_validate_request_query_with_invalid_params(caplog):
@@ -91,4 +69,39 @@ def test_validate_request_data_with_invalid_payload(caplog):
 def test_validate_request_data_with_valid_payload(caplog):
     post_data = {'username': 'ObiOne', 'is_jedi': True}
     assert validation.validate_request_data(PostData, post_data) == post_data
+
+
+def test_published_vacancy_create_is_published_only():
+    data = {
+        'name': 'Jedi Master',
+        'source_name': 'khabjob',
+        'source': 'http://jedi-academy.co/vacancies/58',
+        'is_published': True
+    }
+    with pytest.raises(ValueError):
+        validation.PublishedVacancyCreate(**data)
+
+
+def test_published_vacancy_create_validate_source_or_description_required():
+    data = {
+        'name': 'Jedi Master',
+        'source_name': 'khabjob',
+        'is_published': False
+    }
+    data_source = {
+        'name': 'Jedi Master',
+        'source_name': 'khabjob',
+        'source': 'http://jedi-academy.co/vacancies/58',
+        'is_published': False
+    }
+    data_description = {
+        'name': 'Jedi Master',
+        'source_name': 'khabjob',
+        'description': 'Mater Jedi for new padavans classes',
+        'is_published': False
+    }
+    with pytest.raises(ValueError):
+        validation.PublishedVacancyCreate(**data)
     
+    validation.PublishedVacancyCreate(**data_source)
+    validation.PublishedVacancyCreate(**data_description)

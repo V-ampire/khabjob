@@ -1,8 +1,7 @@
 from core.services import vacancies
 from core.db.schema import vacancies_table
-from core.utils import now_with_tz
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 from sqlalchemy import select
 
 
@@ -108,7 +107,7 @@ async def test_filter_vacancies_with_bool_option(aio_engine, create_vacancy):
         
 
 async def test_search_vacancies_by_dates(aio_engine, create_vacancy):
-    today = now_with_tz().date()
+    today = datetime.utcnow().date()
     vacancy_1 = await create_vacancy(modified_at=today - timedelta(days=6))
     vacancy_2 = await create_vacancy(modified_at=today - timedelta(days=4))
     vacancy_3 = await create_vacancy(modified_at=today - timedelta(days=2))
@@ -171,7 +170,7 @@ async def test_search_vacancies_by_query(aio_engine, create_vacancy):
     
 
 async def test_search_vacancies_by_dates_and_query(aio_engine, create_vacancy):
-    today = now_with_tz().date()
+    today = datetime.utcnow().date()
     date_from = today - timedelta(days=5)
     date_to = today - timedelta(days=3)
     await create_vacancy(
@@ -223,3 +222,25 @@ async def test_search_vacancies_defaut(aio_engine, create_vacancy):
         assert not 'search_index' in r.keys()
 
 
+async def test_create_or_update_vacancy_update(aio_engine, create_vacancy):
+    created_vacancy_data = await create_vacancy(
+        created_at=datetime.utcnow()-timedelta(days=5),
+        modified_at=datetime.utcnow()-timedelta(days=5)
+    )
+    created_vacancy_data['source_name'] = 'khabjob'
+    created_vacancy_data.pop('modified_at')
+
+    async with aio_engine.acquire() as conn:
+        is_created, expected = await vacancies.create_or_update_vacancy(conn, **created_vacancy_data)
+
+    async with aio_engine.acquire() as conn:
+        cursor = await conn.execute(
+            select(vacancies_table).where(vacancies_table.c.source == created_vacancy_data['source'])
+        )
+        result = await cursor.fetchone()
+
+    assert not is_created
+    assert expected == result
+    assert result['source_name'] == 'khabjob'
+    assert result['modified_at'] == datetime.utcnow().date()
+  

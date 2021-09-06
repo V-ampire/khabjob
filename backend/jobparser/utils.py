@@ -1,11 +1,14 @@
 import asyncio
 import aiohttp
+
 from aiopg.sa import create_engine
+
 import logging
 from typing import List, Optional, Dict
 
 from jobparser.parsers import HHParser, SuperjobParser, VkParser, FarpostParser
 from config import PARSERS_CONFIG
+
 from core.services.vacancies import create_vacancy_batch
 from core.db.utils import get_postgres_dsn
 

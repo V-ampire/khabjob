@@ -1,33 +1,42 @@
-from aiohttp.web import View
+from aiohttp.web import View, HTTPBadRequest
+
 from aiopg.sa import Engine
+
 from psycopg2.errors import UniqueViolation
-from typing import List, Mapping
+
+import json
+from typing import List, Mapping, Dict, Union
+
+from api.validation import utils as validation_utils
 
 from core.services import vacancies
 from core.db.utils import parse_unique_violation_fields
 
 
 class BaseView(View):
-    """
-    Base class for views.
-    
-    Provide access via property to db, offset, limit.
-    """
-    pagination_limit = 20
+    """Base class for views."""
 
     lookup_field = 'id'
-
-    async def get_list(self, *args, **kwargs):
-        """Implement handler to return list of items."""
+    
+    async def handle_filter(self, *args, **kwargs) -> List:
+        """Implement handler to return filtered list of items."""
         raise NotImplementedError
 
-    async def get_detail(self, *args, **kwargs):
-        """Implement handler to return detail item."""
+    async def handle_search(self, *args, **kwargs) -> List:
+        """Implement handler to return list of items by search."""
+        raise NotImplementedError
+
+    async def handle_detail(self, *args, **kwargs)  -> Dict:
+        """Implement handler to return info about one item."""
+        raise NotImplementedError
+
+    async def handle_create(self, *args, **kwargs) -> Dict:
+        """Implement handler to rcreate item."""
         raise NotImplementedError
 
     async def get(self, *args, **kwargs):
         """
-        Return self.get_detail if self.lookup_field in url,
+        Return self.get_detail if 'id' attribute in url,
         else return self.get_list.
         """
         if self.lookup_field in self.request.match_info:
@@ -39,21 +48,14 @@ class BaseView(View):
         """Return database engine for current instance of app."""
         return self.request.app['db']
 
-    @property
-    def offset(self) -> int:
-        """Return dict with limit and offset options."""
-        offset =  int(self.request.query.get('offset', 0))
-        return offset if offset >= 0 else 0
-
-    @property
-    def limit(self) -> int:
-        """Return dict with limit and offset options."""
-        limit = int(self.request.query.get('limit', self.pagination_limit))
-        return limit if limit > 0 else self.pagination_limit
+    
 
 
 class BaseVacancyView(BaseView):
     """Base view to handle vacancies."""
+
+    search_validator = None
+    filter_validator = None
 
     async def handle_filter(self, **options) -> List[Mapping]:
         """Return vacancy list by filter service."""
@@ -82,7 +84,6 @@ class BaseVacancyView(BaseView):
             try:
                 created_vacancy = await vacancies.create_vacancy(conn, **vacancy_data)
             except UniqueViolation as error:
-                return parse_unique_violation_fields(error)
+                error_data = parse_unique_violation_fields(error)
+                raise HTTPBadRequest(text=json.dumps(error_data), content_type='application/json')
         return created_vacancy
-
-

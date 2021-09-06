@@ -1,15 +1,17 @@
 """
 Business logic to operate with vacancies.
 """
-from core.db.schema import vacancies_table
-from core.db.utils import except_tsvector_columns, parse_unique_violation_fields
-
 from aiopg.sa import SAConnection
 from aiopg.sa.result import RowProxy
-from datetime import date
-from sqlalchemy import select, insert, over, func
 
+from sqlalchemy import select, insert, over, func, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+from datetime import date, datetime
 from typing import List, Dict, Optional, Tuple
+
+from core.db.schema import vacancies_table
+from core.db.utils import except_tsvector_columns, parse_unique_violation_fields
 
 
 async def create_vacancy(conn: SAConnection, **vacancy_data) -> RowProxy:
@@ -17,6 +19,25 @@ async def create_vacancy(conn: SAConnection, **vacancy_data) -> RowProxy:
     stmt = insert(vacancies_table).values(**vacancy_data).returning(vacancies_table)
     result = await conn.execute(stmt)
     return await result.first()  
+
+
+async def create_or_update_vacancy(conn: SAConnection, **vacancy_data) -> Tuple[bool, RowProxy]:
+    """
+    Create vacancy or update if vacancy is exists.
+    
+    Based on:
+        https://www.postgresqltutorial.com/postgresql-upsert/
+        https://docs.sqlalchemy.org/en/14/dialects/postgresql.html#insert-on-conflict-upsert
+
+    :return: Tuple (is_created, vacancy)
+    """
+    vacancy_data.update({'modified_at': datetime.utcnow().date()})
+    insert_stmt = pg_insert(vacancies_table).values(**vacancy_data).returning(vacancies_table)
+    do_update_stmt = insert_stmt.on_conflict_do_update(index_elements=['source'], set_=vacancy_data)
+    result = await conn.execute(do_update_stmt)
+    vacancy =  await result.fetchone()
+    is_created = vacancy.created_at == datetime.utcnow().date()
+    return (is_created, vacancy)
 
 
 async def create_vacancy_batch(
@@ -85,4 +106,3 @@ async def search_vacancies(conn: SAConnection,
     )
     result = await conn.execute(stmt)
     return await result.fetchall()
-    

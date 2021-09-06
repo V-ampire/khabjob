@@ -1,8 +1,3 @@
-"""
-Describing of database entities.
-"""
-from core.utils import now_with_tz
-
 from sqlalchemy import (
     MetaData, Table, Column, Computed,
     Integer, String, Date, Boolean, Index
@@ -10,6 +5,7 @@ from sqlalchemy import (
 from sqlalchemy import func, text
 from sqlalchemy.dialects.postgresql import TSVECTOR
 
+from datetime import datetime
 
 metadata = MetaData()
 
@@ -18,8 +14,8 @@ vacancies_table = Table(
     'vacancies',
     metadata,
     Column('id', Integer, primary_key=True),
-    Column('created_at', Date, default=now_with_tz),
-    Column('modified_at', Date, default=now_with_tz, onupdate=now_with_tz),
+    Column('created_at', Date, default=datetime.utcnow().date()),
+    Column('modified_at', Date, default=datetime.utcnow().date(), onupdate=datetime.utcnow().date()),
     Column('name', String(264), nullable=False),
     Column('source', String(128), nullable=True, unique=True),
     Column('source_name', String(16), nullable=False),

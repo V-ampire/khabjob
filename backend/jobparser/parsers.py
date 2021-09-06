@@ -1,14 +1,15 @@
-from jobparser.base import BaseParser, ParserConfigError
-from config import BASE_DIR
-
 import asyncio
 import aiofiles
 from bs4 import BeautifulSoup
+
 import json
 from itertools import count
 from random import uniform
 import time
 from typing import List, Dict
+
+from jobparser.base import BaseParser, ParserConfigError
+from config import BASE_DIR
 
 
 class HHParser(BaseParser):

@@ -1,14 +1,19 @@
+from alembic.config import Config
+from alembic.command import upgrade
+
+from aiopg.sa import create_engine
+
+from sqlalchemy import insert
+
 import pytest
 import os
 from unittest import mock
 
-from alembic.config import Config
-from alembic.command import upgrade
-from aiopg.sa import create_engine
-from sqlalchemy import insert
+from api.app import init_app
 
 from core.db import utils
 from core.db.schema import vacancies_table
+
 from config import POSTGRES_CONFIG, BASE_DIR
 
 
@@ -85,9 +90,15 @@ async def create_vacancy(loop, aio_engine, fake_vacancies_data):
 
 @pytest.fixture
 def aio_patch(mocker):
-    """Return function which patcj async functions."""
+    """Return function which patch async functions."""
     def a_patch(target):
         """Patch function and return AsyncMock."""
         async_mock = mock.AsyncMock()
         return mocker.patch(target, new_callable=mock.AsyncMock)
     return a_patch
+
+
+@pytest.fixture
+def api_client(loop, aiohttp_client, migrated_postgres):
+    app = init_app()
+    return loop.run_until_complete(aiohttp_client(app))

@@ -38,6 +38,9 @@ PARSERS_CONFIG = {
 VACANCY_EXPIRE = timedelta(weeks=4*2) # Clean vacancies every 2 mounth
 
 
+SELF_SOURCE_NAME = 'khabjob' # name of source for vacancies added on site
+
+
 POSTGRES_CONFIG = {
     'POSTGRES_DB': env.str('POSTGRES_DB'),
     'POSTGRES_USER': env.str('POSTGRES_USER'),

@@ -1,13 +1,15 @@
 from aiohttp import web, PAYLOAD_REGISTRY
+
 from aiopg.sa import create_engine
 
 from api.routes import setup_routes
 from api.payloads import JsonPayload
 
-from core.db.utils import get_postgres_dsn
-
+import logging
 from typing import Dict, Mapping
 from types import MappingProxyType
+
+from core.db.utils import get_postgres_dsn
 
 
 async def setup_db(app: web.Application):
@@ -23,7 +25,7 @@ async def setup_db(app: web.Application):
         await app['db'].wait_closed()
 
 
-async def init_app(config: Dict={}) -> web.Application:
+def init_app(config: Dict={}) -> web.Application:
     """Initializae apllication."""
     app = web.Application()
 
