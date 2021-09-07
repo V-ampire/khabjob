@@ -47,7 +47,7 @@ async def test_create_vacancy_batch(aio_engine, fake_vacancies_data):
 
 
 async def test_filter_vacancies_without_options_and_default_pagination(aio_engine, create_vacancy):
-    expected = [await create_vacancy() for _ in range(3)]
+    expected = sorted([await create_vacancy() for _ in range(3)], key=lambda v: v['source_name'])
     
     async with aio_engine.acquire() as conn:
         results = await vacancies.filter_vacancies(conn)
@@ -64,7 +64,10 @@ async def test_filter_vacancies_without_options_and_default_pagination(aio_engin
 async def test_filter_vacancies_pagination(aio_engine, create_vacancy):
     limit = 2
     offset = 5
-    expected = [await create_vacancy() for _ in range(offset*2)][offset:offset+limit]
+    expected = sorted(
+        [await create_vacancy() for _ in range(offset*2)][6:8],
+        key=lambda v: v['source_name']
+    )
 
     async with aio_engine.acquire() as conn:
         results = await vacancies.filter_vacancies(conn, limit=limit, offset=offset)
@@ -207,7 +210,7 @@ async def test_search_vacancies_by_dates_and_query(aio_engine, create_vacancy):
 
 
 async def test_search_vacancies_defaut(aio_engine, create_vacancy):
-    expected = [await create_vacancy() for _ in range(3)]
+    expected = sorted([await create_vacancy() for _ in range(3)], key=lambda v: v['source_name'])
     [await create_vacancy(is_published=False) for _ in range(3)]
 
     async with aio_engine.acquire() as conn:
@@ -244,3 +247,59 @@ async def test_create_or_update_vacancy_update(aio_engine, create_vacancy):
     assert result['source_name'] == 'khabjob'
     assert result['modified_at'] == datetime.utcnow().date()
   
+
+async def test_update_vacancy_success(aio_engine, create_vacancy):
+    vacancy_data = await create_vacancy(is_published=False)
+
+    expedted = {
+        'name': 'Jedi Master',
+        'is_published': True
+    }
+
+    async with aio_engine.acquire() as conn:
+        updated_vacancy = await vacancies.update_vacancy(conn, vacancy_id=1, **expedted)
+
+    async with aio_engine.acquire() as conn:
+        cursor = await conn.execute(
+            select(vacancies_table).where(vacancies_table.c.name == expedted['name'])
+        )
+        result = await cursor.fetchone()
+
+    assert updated_vacancy == result
+    assert expedted['name'] == result.name
+    assert expedted['is_published'] == result.is_published
+
+
+async def test_update_vacancy_not_exists(aio_engine):
+    update_data = {
+        'name': 'Jedi Master',
+        'is_published': True
+    }
+
+    async with aio_engine.acquire() as conn:
+        updated_vacancy = await vacancies.update_vacancy(conn, vacancy_id=5, **update_data)
+
+    async with aio_engine.acquire() as conn:
+        cursor = await conn.execute(
+            select(vacancies_table).where(vacancies_table.c.name == update_data['name'])
+        )
+        result = await cursor.fetchone()
+
+    assert updated_vacancy is None
+    assert result is None
+
+
+async def test_delete_vacancy_success(aio_engine, create_vacancy):
+    vacancy_data = await create_vacancy()
+
+    async with aio_engine.acquire() as conn:
+        result = await vacancies.delete_vacancy(conn, vacancy_id=1)
+
+    assert result == 1
+
+
+async def test_delete_vacancy_not_exists(aio_engine, create_vacancy):
+    async with aio_engine.acquire() as conn:
+        result = await vacancies.delete_vacancy(conn, vacancy_id=5)
+
+    assert result == 0

@@ -20,20 +20,6 @@ class BaseVacancy(BaseModel):
     source: Optional[HttpUrl]
     source_name: str
     description: Optional[str]
-    is_published: StrictBool
-
-
-class PublicVacancyCreate(BaseVacancy):
-    """Model to validate vacancy data to create by public API."""
-
-    class Config:
-        extra = 'forbid'
-
-    @validator('is_published')
-    def validate_is_published_only_false(cls, is_published):
-        if is_published:
-            raise ValueError('Public added vacancy cant be pusblished.')
-        return is_published
 
     @root_validator
     def validate_source_or_description_required(cls, values):
@@ -43,9 +29,29 @@ class PublicVacancyCreate(BaseVacancy):
         if source is None and description is None:
             raise ValueError('Vacancy must have source or description.')
         return values
-    
 
-class SearchVacancyOptions(BaseModel):
+    @validator('source')
+    def convert_source_to_str(cls, source_http):
+        return str(source_http)
+
+
+class PublicVacancy(BaseVacancy):
+    """Model to validate vacancy data to create by public API."""
+
+    class Config:
+        extra = 'forbid'
+
+
+class PrivateVacancy(BaseVacancy):
+    """Model to validate vacancy data to create by admin API."""
+    
+    is_published: Optional[StrictBool]
+
+    class Config:
+        extra = 'forbid'
+
+
+class SearchOptions(BaseModel):
     """Pydantic model to validate serach options."""
     date_from: Optional[date]
     date_to: Optional[date]
@@ -56,12 +62,15 @@ class SearchVacancyOptions(BaseModel):
         return validate_date_field_type(date_from)
 
 
-class PublicFilterVacancyOptions(BaseModel):
+class PublicFilterOptions(BaseModel):
     """Model to validate filter options for public API."""
-    source_name: str
-    is_published: StrictBool = Field(False, const=True)
+    source_name: Optional[str]
 
 
-class PrivateFiltervacancyOptions(PublicFilterVacancyOptions):
+class PrivateFilterOptions(BaseModel):
     """Model to validate filter options for private API."""
-    is_published: StrictBool
+    source_name: Optional[str]
+    is_published: Optional[bool]
+
+
+

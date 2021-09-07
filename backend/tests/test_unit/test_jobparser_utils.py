@@ -3,10 +3,10 @@ import aiohttp
 
 
 async def test_parse_vacancies_to_db_all_parsers(loop, aio_patch, postgres):
-    expected_farpost = [{'name': 'farpost'}]
-    expected_superjob = [{'name': 'superjob'}]
-    expected_hh = [{'name': 'hh'}]
-    expected_vk = [{'name': 'vk'}]
+    expected_farpost = [{'name': 'farpost', 'source_name': 'farpost'}]
+    expected_superjob = [{'name': 'superjob', 'source_name': 'superjob'}]
+    expected_hh = [{'name': 'hh', 'source_name': 'hh'}]
+    expected_vk = [{'name': 'vk', 'source_name': 'vk'}]
 
     farpost_mock = aio_patch(f'jobparser.utils.FarpostParser.get_vacancies')
     farpost_mock.return_value = expected_farpost

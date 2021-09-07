@@ -6,3 +6,9 @@
 - Подключить сваггер
 - Проставить логи
 - Импорты из пакетов
+
+Fix tests:
+
+FAILED tests/test_integration/test_public_views.py::test_create_vacancy_resource[pyloop] - assert {'created_at'...': False, ...} == ...
+FAILED tests/test_unit/test_jobparser_utils.py::test_parse_vacancies_to_db_all_parsers[pyloop] - KeyError: 'source_name'
+FAILED tests/test_unit/test_jobparser_utils.py::test_parse_vacancies_to_db_concrete_parsers[pyloop] - KeyError: 'source_name'

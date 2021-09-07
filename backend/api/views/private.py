@@ -2,23 +2,53 @@
 Views for private API interface.
 Access only for authenticated users.
 """
-from aiohttp import web
-
 from api.views.base import BaseVacancyView
-from api import validation
+from api.views.mixins import (
+    ListMixin,
+    DetailMixin,
+    CreateMixin,
+    UpdateMixin,
+    DeleteMixin
+)
+from api.validation import utils as validation_utils
+from api.validation.vacancies import (
+    PrivateVacancy,
+    SearchOptions,
+    PrivateFilterOptions,
+)
 
 
-class Vacancies(BaseVacancyView):
+class Vacancies(
+    ListMixin,
+    DetailMixin,
+    CreateMixin,
+    UpdateMixin,
+    DeleteMixin,
+    BaseVacancyView
+):
     """View for vacancies resource."""
 
-    async def get_list(self):
-        """Get publiched vacancies list."""
-        vacancies_data = await self.handle_filter()
-        count = vacancies_data[0].get('count', None) if len(vacancies_data) > 0 else 0
-        response_data = get_pagination_params(
-            self.request.url, 
-            count=count,
-            limit=self.limit, offset=self.offset
+    validator_class = PrivateVacancy
+    
+    search_options = [
+        'date_from',
+        'date_to',
+        'search_query',
+    ]
+
+    async def filter_by(self, **options):
+        if options:
+            options = validation_utils.validate_request_query(
+                PrivateFilterOptions,
+                options,
+                exclude_none=True
+            )
+        return await super().filter_by(**options)
+    
+    async def search(self, **options):
+        validated_options = validation_utils.validate_request_query(
+            SearchOptions,
+            options,
+            exclude_none=True
         )
-        response_data.update({'results': vacancies_data})
-        return web.Response(body=response_data)
+        return await super().search(**validated_options)

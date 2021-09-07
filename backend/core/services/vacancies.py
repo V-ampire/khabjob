@@ -4,7 +4,7 @@ Business logic to operate with vacancies.
 from aiopg.sa import SAConnection
 from aiopg.sa.result import RowProxy
 
-from sqlalchemy import select, insert, over, func, update
+from sqlalchemy import select, insert, over, func, update, delete
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from datetime import date, datetime
@@ -15,8 +15,9 @@ from core.db.utils import except_tsvector_columns, parse_unique_violation_fields
 
 
 async def create_vacancy(conn: SAConnection, **vacancy_data) -> RowProxy:
-    """Create new vacancy in database."""    
-    stmt = insert(vacancies_table).values(**vacancy_data).returning(vacancies_table)
+    """Create new vacancy in database."""
+    columns = except_tsvector_columns(vacancies_table)
+    stmt = insert(vacancies_table).values(**vacancy_data).returning(*columns)
     result = await conn.execute(stmt)
     return await result.first()  
 
@@ -106,3 +107,35 @@ async def search_vacancies(conn: SAConnection,
     )
     result = await conn.execute(stmt)
     return await result.fetchall()
+
+
+async def update_vacancy(conn: SAConnection, vacancy_id: int, **vacancy_data: [Dict[str, str]]) -> int:
+    """
+    Update existed vacancy in database.
+    
+    :param vacancy_id: ID of vacancy to update.
+    :param vacancy_data: New vacancy data.
+    """
+    columns = except_tsvector_columns(vacancies_table)
+    stmt = update(*columns).where(
+        vacancies_table.c.id==vacancy_id
+    ).values(**vacancy_data).returning(*columns)
+
+    result = await conn.execute(stmt)
+    return await result.fetchone()
+
+
+async def delete_vacancy(conn: SAConnection, vacancy_id: int) -> RowProxy:
+    """
+    Delete vacancy from database.
+    
+    :param vacancy_id: ID of vacancy to delete.
+
+    Return number of deleted rows.
+    """
+    stmt = delete(vacancies_table).where(vacancies_table.c.id==vacancy_id)
+
+    result = await conn.execute(stmt)
+    return result.rowcount
+
+
