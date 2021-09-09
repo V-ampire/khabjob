@@ -25,7 +25,7 @@ async def test_create_user(aio_engine):
 
     assert result == user
     assert user.username == user_data['username']
-    assert auth.check_password(user_data['password'], user.password_hash)
+    assert auth.is_password_confirm(user_data['password'], user.password_hash)
 
 
 async def test_get_user(aio_engine, create_user):

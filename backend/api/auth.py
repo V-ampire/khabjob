@@ -10,7 +10,7 @@ from typing import Optional, Dict, Tuple, Any
 
 from core.services.auth import (
     get_user,
-    check_password,
+    is_password_confirm,
     is_token_blacklisted
 ) 
 
@@ -163,3 +163,19 @@ def make_jwt_token_for_user(user_id):
         AUTH_CONFIG['SECRET_KEY'],
         algorithm=AUTH_CONFIG['ALGORITHM']
     )
+
+
+async def authenticate_user(conn: SAConnection, **user_credentials: Dict[str, str]) -> User:
+    """
+    Authenticate user by credentials.
+
+    If success return User, else None.
+    """
+    password = user_credentials.pop('password')
+    user = await get_user(conn, **user_credentials)
+
+    if user is None or not is_password_confirm(password, user.password_hash):
+        raise web.HTTPForbidden('Invalid user credentials.')
+    
+    return user
+

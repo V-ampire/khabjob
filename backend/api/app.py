@@ -29,8 +29,7 @@ async def setup_db(app: web.Application):
 
 def init_app(config: Dict={}) -> web.Application:
     """Initializae apllication."""
-    # middlewares=[jwt_auth_middleware]
-    app = web.Application()
+    app = web.Application(middlewares=[jwt_auth_middleware])
 
     setup_routes(app)
 

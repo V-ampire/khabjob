@@ -12,7 +12,7 @@ from core.db.utils import parse_unique_violation_fields
 
 
 class BaseView(web.View):
-    """Base class for views."""
+    """Base class for rest api views."""
 
     validator_class = None
     

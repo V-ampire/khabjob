@@ -5,7 +5,7 @@ import jwt
 import pytest
 from unittest.mock import AsyncMock
 
-from api.auth import User
+from api.auth import User, make_jwt_token_for_user
 from api.middleware import jwt_auth_middleware
 
 from config import AUTH_CONFIG
@@ -33,15 +33,16 @@ def make_jwt_token():
     return gen_token
 
 
-async def test_authenticate_user_with_user(api, create_user, make_jwt_token):
+async def test_authenticate_user_with_user(api, create_user):
     user = await create_user()
-    token = make_jwt_token({'user_id': user.id})
+    token = make_jwt_token_for_user(user.id)
     headers = {
         AUTH_CONFIG['JWT_HEADER_NAME']: '{0} {1}'.format(AUTH_CONFIG['JWT_AUTH_SCHEME'], token)
     }
     resp = await api.get('/', headers=headers)
     result_user = handler.await_args.args[0]['user']
     expected_user = User(
+        id=user.id,
         username=user.username,
         password_hash=user.password_hash
     )

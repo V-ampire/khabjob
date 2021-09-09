@@ -109,12 +109,18 @@ async def search_vacancies(conn: SAConnection,
     return await result.fetchall()
 
 
-async def update_vacancy(conn: SAConnection, vacancy_id: int, **vacancy_data: [Dict[str, str]]) -> int:
+async def update_vacancy(
+    conn: SAConnection,
+    vacancy_id: int,
+    **vacancy_data: [Dict[str, str]]
+) -> Optional[RowProxy]:
     """
     Update existed vacancy in database.
     
     :param vacancy_id: ID of vacancy to update.
     :param vacancy_data: New vacancy data.
+
+    If Vacancy does not exists return None.
     """
     columns = except_tsvector_columns(vacancies_table)
     stmt = update(*columns).where(

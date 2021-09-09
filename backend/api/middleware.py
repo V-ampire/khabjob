@@ -1,6 +1,6 @@
 from aiohttp.web import middleware
 
-from api.auth import authenticate
+from api.auth import check_authentication
 
 
 @middleware
@@ -10,7 +10,5 @@ async def jwt_auth_middleware(request, handler):
     
     Middleware set user as request['user'] and token as request['token']
     """
-    user, token = await authenticate(request)
-    request['user'] = user
-    request['token'] = token
-    return await handler(request)
+    authenticated_request = await check_authentication(request)
+    return await handler(authenticated_request)

@@ -32,6 +32,19 @@ async def get_user(conn: SAConnection, **user_data) -> Optional[RowProxy]:
     return await result.first()
 
 
+async def update_user(conn: SAConnection, user_id: int, **update_data) -> Optional[RowProxy]:
+    """Update user. If user does not exists return None."""
+    password = update_data.pop('password', None)
+    if password is not None:
+        update_data.update({'password_hash': hash_password(password)})
+    
+    stmt = update(users_table).filter_by(id=user_id).values(**update_data).returning(users_table)
+    
+    result = await conn.execute(stmt)
+    return await result.fetchone()
+
+
+
 def hash_password(password: str, salt: Optional[str]=None) -> str:
     """Turn a plain-text password into a hash for database storage."""
     if salt is None:
@@ -45,7 +58,7 @@ def hash_password(password: str, salt: Optional[str]=None) -> str:
     return bytes_hash.hex()
 
 
-def check_password(password: str, password_hash: str, salt: Optional[str]=None) -> bool:
+def is_password_confirm(password: str, password_hash: str, salt: Optional[str]=None) -> bool:
     """Compare password with calculated hash for this password."""
     return password_hash == hash_password(password, salt=salt)
 
