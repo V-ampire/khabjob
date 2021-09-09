@@ -8,6 +8,7 @@ ipython = "*"
 pytest-aiohttp = "*"
 faker = "*"
 pytest-mock = "*"
+freezegun = "*"
 
 [packages]
 aiohttp = {extras = ["speedups"],version = "*"}
@@ -20,6 +21,7 @@ alembic = "*"
 click = "*"
 pydantic = "*"
 pytz = "*"
+pyjwt = "*"
 
 [requires]
 python_version = "3.8"

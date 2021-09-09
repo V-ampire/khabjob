@@ -1,4 +1,4 @@
-from aiohttp.web import View, HTTPBadRequest, HTTPNotFound
+from aiohttp import web
 
 from psycopg2.errors import UniqueViolation
 
@@ -11,7 +11,7 @@ from core.services import vacancies
 from core.db.utils import parse_unique_violation_fields
 
 
-class BaseView(View):
+class BaseView(web.View):
     """Base class for views."""
 
     validator_class = None
@@ -82,13 +82,13 @@ class BaseVacancyView(DbViewMixin, BaseView):
     
     async def detail(self, vacancy_id: int, **options) -> Mapping:
         """Return info about one vacancy using vacancy ID."""
-        vacancy_id = validate_vacancy_id(vacancy_id)
+        vacancy_id = self.validate_vacancy_id(vacancy_id)
         async with self.db.acquire() as conn:
             vacancies_data = await vacancies.filter_vacancies(
                 conn, limit=1, id=vacancy_id, **options
             )
         if len(vacancies_data) == 0:
-            raise HTTPNotFound()
+            raise web.HTTPNotFound()
         return vacancies_data[0]
 
     async def create(self, **vacancy_data) -> Mapping:
@@ -103,12 +103,12 @@ class BaseVacancyView(DbViewMixin, BaseView):
                 created_vacancy = await vacancies.create_vacancy(conn, **vacancy_data)
             except UniqueViolation as error:
                 error_data = parse_unique_violation_fields(error)
-                raise HTTPBadRequest(text=json.dumps(error_data), content_type='application/json')
+                raise web.HTTPBadRequest(text=json.dumps(error_data), content_type='application/json')
         return created_vacancy
 
     async def update(self, vacancy_id: int, **update_data) -> Mapping:
         """Update vacancy by vacancy ID."""
-        vacancy_id = validate_vacancy_id(vacancy_id)
+        vacancy_id = self.validate_vacancy_id(vacancy_id)
         async with self.db.acquire() as conn:
             vacancy = await vacancies.update_vacancy(
                 conn, id=vacancy_id, **update_data
@@ -117,7 +117,7 @@ class BaseVacancyView(DbViewMixin, BaseView):
 
     async def delete(self, vacancy_id: int) -> int:
         """Delete vacancy by vacancy ID."""
-        vacancy_id = validate_vacancy_id(vacancy_id)
+        vacancy_id = self.validate_vacancy_id(vacancy_id)
         async with self.db.acquire() as conn:
             result = await vacancies.delete_vacancy(
                 conn, id=vacancy_id,

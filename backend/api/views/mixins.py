@@ -17,6 +17,15 @@ class DbViewMixin:
         return self.request.app['db']
 
 
+class AuthenticatedRequiredMixin:
+    """Mixin limits access only for authenticated requests."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.request.get('user', None) is None:
+            raise web.HTTPForbidden(reason='Access authenticated only.')
+
+
 class ListMixin:
     """
     Mixin implements get_list method returns list of items.

@@ -35,7 +35,7 @@ PARSERS_CONFIG = {
     }
 }
 
-VACANCY_EXPIRE = timedelta(weeks=4*2) # Clean vacancies every 2 mounth
+VACANCY_EXPIRED = timedelta(weeks=4*2) # Clean vacancies every 2 mounth
 
 
 SELF_SOURCE_NAME = 'khabjob' # name of source for vacancies added on site
@@ -56,3 +56,12 @@ API_CONFIG = {
 
 
 TIMEZONE = 'Asia/Vladivostok'
+
+
+AUTH_CONFIG = {
+    'SECRET_KEY': env.str('SECRET_KEY', default='No-no, its a secret!'),
+    'ALGORITHM': "HS256",
+    'JWT_AUTH_SCHEME': 'Bearer',
+    'JWT_HEADER_NAME': 'Authorization',
+    'JWT_LIFETIME': timedelta(days=30),
+}

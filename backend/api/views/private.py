@@ -8,7 +8,8 @@ from api.views.mixins import (
     DetailMixin,
     CreateMixin,
     UpdateMixin,
-    DeleteMixin
+    DeleteMixin,
+    AuthenticatedRequiredMixin,
 )
 from api.validation import utils as validation_utils
 from api.validation.vacancies import (
@@ -19,6 +20,7 @@ from api.validation.vacancies import (
 
 
 class Vacancies(
+    AuthenticatedRequiredMixin,
     ListMixin,
     DetailMixin,
     CreateMixin,

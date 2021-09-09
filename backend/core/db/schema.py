@@ -24,3 +24,19 @@ vacancies_table = Table(
     Column('search_index', TSVECTOR, Computed(text("to_tsvector('russian', name)"))),
     Index("vacancies_idx_column", 'search_index', postgresql_using='gin')
 )
+
+
+users_table = Table(
+    'users',
+    metadata,
+    Column('id', Integer, primary_key=True),
+    Column('username', String(64), nullable=False, unique=True),
+    Column('password_hash', String(256), nullable=False, unique=True)
+)
+
+
+jwt_blacklist_table = Table(
+    'jwt_blacklist',
+    metadata,
+    Column('token', String(256), primary_key=True),
+)

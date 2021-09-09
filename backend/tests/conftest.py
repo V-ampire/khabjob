@@ -1,9 +1,14 @@
+from aiohttp.web import Application
+from aiohttp.test_utils import make_mocked_request
+
 from alembic.config import Config
 from alembic.command import upgrade
 
 from aiopg.sa import create_engine
 
 from sqlalchemy import insert
+
+import jwt
 
 import pytest
 import os
@@ -12,9 +17,10 @@ from unittest import mock
 from api.app import init_app
 
 from core.db import utils
-from core.db.schema import vacancies_table
+from core.db.schema import vacancies_table, users_table
+from core.services.auth import hash_password
 
-from config import POSTGRES_CONFIG, BASE_DIR
+from config import POSTGRES_CONFIG, BASE_DIR, AUTH_CONFIG
 
 
 @pytest.fixture(autouse=True, scope='session')
@@ -89,6 +95,29 @@ async def create_vacancy(loop, aio_engine, fake_vacancies_data):
 
 
 @pytest.fixture
+def fake_user_data(faker):
+    return {
+        'username': faker.user_name(),
+        'password': faker.password()
+    }
+
+
+@pytest.fixture
+async def create_user(aio_engine, fake_user_data):
+    async def create(**user_data):
+        create_data = fake_user_data
+        create_data.update(user_data)
+        password_hash = hash_password(create_data.pop('password'))
+        async with aio_engine.acquire() as conn:
+            stmt = insert(users_table).values(
+                password_hash=password_hash, **create_data
+            ).returning(users_table)
+            result = await conn.execute(stmt)
+            return await result.fetchone()
+    return create
+
+
+@pytest.fixture
 def aio_patch(mocker):
     """Return function which patch async functions."""
     def a_patch(target):
@@ -102,3 +131,27 @@ def aio_patch(mocker):
 def api_client(loop, aiohttp_client, migrated_postgres):
     app = init_app()
     return loop.run_until_complete(aiohttp_client(app))
+
+
+@pytest.fixture
+def make_jwt_token():
+    def gen_token(payload={}):
+        return jwt.encode(
+            payload,
+            AUTH_CONFIG['SECRET_KEY'],
+            algorithm=AUTH_CONFIG['ALGORITHM']
+        )
+    return gen_token
+
+
+@pytest.fixture
+def jwt_request(aio_engine, make_jwt_token, migrated_postgres):
+    def make_request(jwt_payload={}):
+        app = Application()
+        app['db'] = aio_engine
+        token = make_jwt_token(jwt_payload)
+        headers = {
+            AUTH_CONFIG['JWT_HEADER_NAME']: '{0} {1}'.format(AUTH_CONFIG['JWT_AUTH_SCHEME'], token)
+        }
+        return (make_mocked_request('GET', '/', headers=headers, app=app), token)
+    return make_request

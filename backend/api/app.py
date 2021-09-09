@@ -2,11 +2,12 @@ from aiohttp import web, PAYLOAD_REGISTRY
 
 from aiopg.sa import create_engine
 
+from api.middleware import jwt_auth_middleware
 from api.routes import setup_routes
 from api.payloads import JsonPayload
 
 import logging
-from typing import Dict, Mapping
+from typing import Dict, Mapping 
 from types import MappingProxyType
 
 from core.db.utils import get_postgres_dsn
@@ -25,8 +26,10 @@ async def setup_db(app: web.Application):
         await app['db'].wait_closed()
 
 
+
 def init_app(config: Dict={}) -> web.Application:
     """Initializae apllication."""
+    # middlewares=[jwt_auth_middleware]
     app = web.Application()
 
     setup_routes(app)

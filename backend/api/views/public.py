@@ -5,7 +5,7 @@ from api.views.base import BaseVacancyView
 from api.views.mixins import (
     ListMixin,
     DetailMixin,
-    CreateMixin
+    CreateMixin,
 )
 from api.validation import utils as validation_utils
 from api.validation.vacancies import (
