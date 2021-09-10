@@ -15,6 +15,9 @@ class UserCredentials(BaseModel):
     username: str
     password: str
 
+    class Config:
+        extra = 'forbid'
+
 
 class ResetPasswordData(BaseModel):
     username: str
@@ -39,7 +42,11 @@ def validate_password_format(password: str, pattern: Optional[str]=None):
     pattern = pattern or DEFAULT_PASSWORD_PATTERN
     result = re.match(pattern, password)
     if result is None:
-        raise ValueError('Invalid password format.')
+        raise ValueError(
+            'Password too weak. Password must contain at least eight characters,'
+            'at least one number and both lower and uppercase letters,'
+            'and special characters.'
+        )
     
     
 

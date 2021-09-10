@@ -1,23 +1,10 @@
 import json
 import pytest
 
-from api.auth import make_jwt_token_for_user
 from api.utils import get_pagination_params
 from api.payloads import dumps
 
 from core.services.vacancies import filter_vacancies, search_vacancies
-
-
-@pytest.fixture
-async def auth_headers(create_user):
-    user = await create_user()
-    token = make_jwt_token_for_user(user.id)
-    headers = {
-        'Authorization': 'Bearer {0}'.format(token)
-    }
-    return (user, headers)
-    
-
 
 
 async def test_unauthorized_requests_private_views(api_client):
