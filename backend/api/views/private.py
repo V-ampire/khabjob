@@ -13,7 +13,9 @@ from api.views.mixins import (
 )
 from api.validation import utils as validation_utils
 from api.validation.vacancies import (
-    PrivateVacancy,
+    PrivatePostVacancy,
+    PrivatePutVacancy,
+    PrivatePatchVacancy,
     SearchOptions,
     PrivateFilterOptions,
 )
@@ -30,7 +32,13 @@ class Vacancies(
 ):
     """View for vacancies resource."""
 
-    validator_class = PrivateVacancy
+    def get_validator_class(self):
+        if self.request.method == 'POST':
+            return PrivatePostVacancy
+        elif self.request.method == 'PUT':
+            return PrivatePutVacancy
+        else:
+            return PrivatePatchVacancy
     
     search_options = [
         'date_from',
@@ -43,7 +51,7 @@ class Vacancies(
             options = validation_utils.validate_request_query(
                 PrivateFilterOptions,
                 options,
-                exclude_none=True
+                exclude_unset=True
             )
         return await super().filter_by(**options)
     
@@ -51,6 +59,6 @@ class Vacancies(
         validated_options = validation_utils.validate_request_query(
             SearchOptions,
             options,
-            exclude_none=True
+            exclude_unset=True
         )
         return await super().search(**validated_options)

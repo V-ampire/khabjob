@@ -1,7 +1,7 @@
 from aiopg.sa import SAConnection
 from aiopg.sa.result import RowProxy
 
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, update
 
 import hashlib
 from typing import Optional

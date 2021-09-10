@@ -79,3 +79,33 @@ async def test_is_token_blacklisted_false(aio_engine, make_jwt_token):
         result = await auth.is_token_blacklisted(conn, expected_token)
 
     assert not result
+
+
+async def test_update_user_without_password(aio_engine, create_user):
+    user = await create_user()
+
+    async with aio_engine.acquire() as conn:
+        await auth.update_user(conn, user.id, username='New_cool_username')
+
+    async with aio_engine.acquire() as conn:
+        cursor = await conn.execute(
+            select(users_table).filter_by(id=user.id)
+        )
+        result = await cursor.fetchone()
+
+    assert result.username == 'New_cool_username'
+
+
+async def test_update_user_with_password(aio_engine, create_user):
+    user = await create_user()
+
+    async with aio_engine.acquire() as conn:
+        await auth.update_user(conn, user.id, password='More_strength_pswd')
+
+    async with aio_engine.acquire() as conn:
+        cursor = await conn.execute(
+            select(users_table).filter_by(id=user.id)
+        )
+        result = await cursor.fetchone()
+
+    assert auth.is_password_confirm('More_strength_pswd', result.password_hash)

@@ -12,14 +12,35 @@ from typing import Optional
 
 from api.validation.utils import validate_date_field_type
 
+from config import SELF_SOURCE_NAME
+
 
 class BaseVacancy(BaseModel):
     """Base vacancy model."""
 
-    name: str
+    name: Optional[str]
     source: Optional[HttpUrl]
-    source_name: str
+    source_name: Optional[str]
     description: Optional[str]
+
+    @validator('source')
+    def convert_source_to_str(cls, source_http):
+        return str(source_http)
+
+    class Config:
+        extra = 'forbid'
+
+
+class PublicVacancy(BaseVacancy):
+    """
+    Model to validate vacancy data to create by public API.
+    
+    Fields should include name and source or description.
+    Source name always the sitename.
+    """
+
+    name: str
+    source_name: str = SELF_SOURCE_NAME
 
     @root_validator
     def validate_source_or_description_required(cls, values):
@@ -30,25 +51,39 @@ class BaseVacancy(BaseModel):
             raise ValueError('Vacancy must have source or description.')
         return values
 
-    @validator('source')
-    def convert_source_to_str(cls, source_http):
-        return str(source_http)
 
-
-class PublicVacancy(BaseVacancy):
-    """Model to validate vacancy data to create by public API."""
-
-    class Config:
-        extra = 'forbid'
-
-
-class PrivateVacancy(BaseVacancy):
-    """Model to validate vacancy data to create by admin API."""
+class PrivatePostVacancy(BaseVacancy):
+    """
+    Model to validate vacancy data to create by admin API.
     
-    is_published: Optional[StrictBool]
+    Requires name and is_published fields.
+    """
+    
+    name: str
+    is_published: StrictBool
+   
 
-    class Config:
-        extra = 'forbid'
+
+class PrivatePutVacancy(BaseVacancy):
+    """
+    Model to validate vacancy data to full update vacancy by admin API.
+    
+    For full update doesn't allow optional values.
+    """
+    
+    name: str
+    source: HttpUrl
+    source_name: str
+    description: str
+    is_published: StrictBool
+
+
+class PrivatePatchVacancy(BaseVacancy):
+    """
+    Model to validate vacancy data to partial update vacancy by admin API.
+    
+    All fields are optional.
+    """
 
 
 class SearchOptions(BaseModel):

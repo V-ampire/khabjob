@@ -38,7 +38,7 @@ class Vacancies(
             options = validation_utils.validate_request_query(
                 PublicFilterOptions,
                 options,
-                exclude_none=True
+                exclude_unset=True
             )
         options.update({'is_published': True})
         return await super().filter_by(**options)
@@ -47,7 +47,7 @@ class Vacancies(
         validated_options = validation_utils.validate_request_query(
             SearchOptions,
             options,
-            exclude_none=True
+            exclude_unset=True
         )
         return await super().search(**validated_options)
 

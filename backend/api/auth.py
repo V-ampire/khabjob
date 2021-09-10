@@ -88,7 +88,6 @@ def authenticate_headers(request):
     return parts[1]
 
 
-
 def check_jwt_token_expired(jwt_exp: Any) -> bool:
     """
     Check whether lifetime token has expired.
@@ -175,7 +174,7 @@ async def authenticate_user(conn: SAConnection, **user_credentials: Dict[str, st
     user = await get_user(conn, **user_credentials)
 
     if user is None or not is_password_confirm(password, user.password_hash):
-        raise web.HTTPForbidden('Invalid user credentials.')
+        raise web.HTTPForbidden(reason='Invalid user credentials.')
     
     return user
 

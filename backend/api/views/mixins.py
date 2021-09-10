@@ -119,7 +119,7 @@ class CreateMixin:
         """Create new item."""
         create_data = await self._get_create_data()
         validated_data = validation_utils.validate_request_data(
-            self.validator_class,
+            self.get_validator_class(),
             create_data,
         )
         created_item = await self.create(**validated_data)
@@ -157,7 +157,7 @@ class UpdateMixin:
         """Full update item."""
         lookup, update_data = await self._get_update_data()
         validated_data = validation_utils.validate_request_data(
-            self.validator_class,
+            self.get_validator_class(),
             update_data,
         )
         updated_item = await self.update(lookup, **validated_data)
@@ -167,9 +167,9 @@ class UpdateMixin:
         """Partitial update item."""
         lookup, update_data = await self._get_update_data()
         validated_data = validated_data = validation_utils.validate_request_data(
-            self.validator_class,
+            self.get_validator_class(),
             update_data,
-            exclude_none=True
+            exclude_unset=True
         )
         updated_item = await self.update(lookup, **validated_data)
         return web.Response(body=updated_item, status=200)
@@ -188,5 +188,5 @@ class DeleteMixin:
         if not self.lookup_field in self.request.match_info:
             raise web.HTTPNotFound()
         lookup = self.request.match_info[self.lookup_field]
-        await self.delete(lookup)
-        return web.Response(status=204)
+        deleted_count = await self.destroy(lookup)
+        return web.Response(body={'delete': deleted_count}, status=204)

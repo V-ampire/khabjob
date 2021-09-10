@@ -24,20 +24,20 @@ def validate_date_field_type(raw_date: Any) -> date:
 def validate_request_data(
     validator: BaseModel, 
     data: Dict[str, Any], 
-    exclude_none: bool=False
+    exclude_unset: bool=False
 ):
     """
     Validate data for such methods as POST, PUT, PATCH.
 
     :param validator: Validation validator.
     :param data: Request data.
-    :param exclude_none: whether fields which are equal to None 
+    :param exclude_unset: whether fields which aren't passed 
     should be excluded from the returned dictionary.
 
     If data is not valid raise Bad request error.
     """
     try:
-        return validator(**data).dict(exclude_none=exclude_none)
+        return validator(**data).dict(exclude_unset=exclude_unset)
     except ValidationError as exc:
         error_msg = '{0},\nPayload: {1}'.format(exc, data)
         logger.error(error_msg)
@@ -50,20 +50,20 @@ QueryType = Union[str, int, date]
 def validate_request_query(
     validator: BaseModel, 
     query_params: Dict[str, Any],
-    exclude_none: bool=False
+    exclude_unset: bool=False
 ) -> Dict[str, QueryType]:
     """
     Validate request query params.
 
     :param validator: Validation validator.
     :param data: Query parameters.
-    :param exclude_none: whether fields which are equal to None 
+    :param exclude_unset: whether fields which are aren't passed 
     should be excluded from the returned dictionary.
 
     If params is not valid return empty dict.
     """
     try:
-        return validator(**query_params).dict(exclude_none=exclude_none)
+        return validator(**query_params).dict(exclude_unset=exclude_unset)
     except ValidationError as exc:
         error_msg = '{0},\nQuery params: {1}'.format(exc, query_params)
         logger.error(error_msg)

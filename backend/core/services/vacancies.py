@@ -123,7 +123,7 @@ async def update_vacancy(
     If Vacancy does not exists return None.
     """
     columns = except_tsvector_columns(vacancies_table)
-    stmt = update(*columns).where(
+    stmt = update(vacancies_table).where(
         vacancies_table.c.id==vacancy_id
     ).values(**vacancy_data).returning(*columns)
 

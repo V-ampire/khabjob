@@ -249,3 +249,57 @@ async def test_check_authentication(mocker, aio_patch, jwt_request):
     assert result['user'] == expected_user
     assert result['token'] == expected_token
     assert result is request
+
+
+async def test_authenticate_user_not_found(aio_patch, mocker):
+    conn = mocker.Mock()
+
+    user_credentials = {
+        'username': 'ObiOne777',
+        'password': 'Qwerty777$$'
+    }
+    mock_get_user = aio_patch('api.auth.get_user')
+    mock_get_user.return_value = None
+
+    with pytest.raises(HTTPForbidden) as err_403:
+        await auth.authenticate_user(conn, **user_credentials)
+
+    assert err_403.value.reason == 'Invalid user credentials.'
+    mock_get_user.assert_awaited_with(conn, username=user_credentials['username'])
+
+
+async def test_authenticate_user_invalid_password(aio_patch, mocker):
+    conn = mocker.Mock()
+
+    user_credentials = {
+        'username': 'ObiOne777',
+        'password': 'Qwerty777$$'
+    }
+    mock_get_user = aio_patch('api.auth.get_user')
+    mock_conf_password = mocker.patch('api.auth.is_password_confirm')
+    mock_conf_password.return_value = False
+
+    with pytest.raises(HTTPForbidden) as err_403:
+        await auth.authenticate_user(conn, **user_credentials)
+
+    assert err_403.value.reason == 'Invalid user credentials.'
+    mock_get_user.assert_awaited_with(conn, username=user_credentials['username'])
+
+
+async def test_authenticate_user_success(aio_patch, mocker):
+    conn = mocker.Mock()
+    expected_user = mocker.Mock()
+
+    user_credentials = {
+        'username': 'ObiOne777',
+        'password': 'Qwerty777$$'
+    }
+    mock_get_user = aio_patch('api.auth.get_user')
+    mock_get_user.return_value = expected_user
+    mock_conf_password = mocker.patch('api.auth.is_password_confirm')
+    mock_conf_password.return_value = True
+
+    result = await auth.authenticate_user(conn, **user_credentials)
+
+    assert result == expected_user
+    mock_get_user.assert_awaited_with(conn, username=user_credentials['username']) 

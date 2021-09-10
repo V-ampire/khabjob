@@ -1,7 +1,7 @@
 from pydantic import (
     BaseModel, 
     ValidationError,
-    root_validator,
+    validator,
 )
 
 import re
@@ -28,7 +28,7 @@ class ResetPasswordData(BaseModel):
         return password
 
     @validator('new_password2')
-    def validate_passwrods_equals(cls, password2, values):
+    def validate_passwords_match(cls, password2, values):
         password1 = values.get('new_password1')
         if password1 != password2:
             raise ValueError('Password mismatch.')

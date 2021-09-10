@@ -15,6 +15,10 @@ class BaseView(web.View):
     """Base class for rest api views."""
 
     validator_class = None
+
+    def get_validator_class(self):
+        """Override this method to customize getting validator class."""
+        return self.validator_class
     
     async def filter_by(self, *args, **kwargs) -> List:
         """Implement handler to return filtered list of items."""
@@ -39,7 +43,7 @@ class BaseView(web.View):
         """Implement handler to partial update item."""
         raise NotImplementedError
     
-    async def delete(self, *args, **kwargs) -> None:
+    async def destroy(self, *args, **kwargs) -> None:
         """Implement handler to delete item."""
         raise NotImplementedError
 
@@ -111,16 +115,16 @@ class BaseVacancyView(DbViewMixin, BaseView):
         vacancy_id = self.validate_vacancy_id(vacancy_id)
         async with self.db.acquire() as conn:
             vacancy = await vacancies.update_vacancy(
-                conn, id=vacancy_id, **update_data
+                conn, vacancy_id, **update_data
             )
         return vacancy
 
-    async def delete(self, vacancy_id: int) -> int:
+    async def destroy(self, vacancy_id: int) -> int:
         """Delete vacancy by vacancy ID."""
         vacancy_id = self.validate_vacancy_id(vacancy_id)
         async with self.db.acquire() as conn:
             result = await vacancies.delete_vacancy(
-                conn, id=vacancy_id,
+                conn, vacancy_id,
             )
         return result
 

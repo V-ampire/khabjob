@@ -1,5 +1,6 @@
 from core.services import vacancies
 from core.db.schema import vacancies_table
+from core.db.utils import except_tsvector_columns
 
 from datetime import timedelta, datetime
 from sqlalchemy import select
@@ -261,7 +262,9 @@ async def test_update_vacancy_success(aio_engine, create_vacancy):
 
     async with aio_engine.acquire() as conn:
         cursor = await conn.execute(
-            select(vacancies_table).where(vacancies_table.c.name == expedted['name'])
+            select(*except_tsvector_columns(vacancies_table)).where(
+                vacancies_table.c.name == expedted['name']
+            )
         )
         result = await cursor.fetchone()
 
