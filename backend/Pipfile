@@ -9,7 +9,7 @@ pytest-aiohttp = "*"
 faker = "*"
 pytest-mock = "*"
 freezegun = "*"
-wemake-python-styleguide = "*"
+flake8 = "*"
 
 [packages]
 aiohttp = {extras = ["speedups"],version = "*"}

@@ -30,7 +30,7 @@ class Vacancies(
     DeleteMixin,
     BaseVacancyView
 ):
-    """View for vacancies resource."""
+    """View for private(admin) vacancies resource."""
 
     def get_validator_class(self):
         if self.request.method == 'POST':
@@ -61,4 +61,5 @@ class Vacancies(
             options,
             exclude_unset=True
         )
+        validated_options.update({'published_only': False})
         return await super().search(**validated_options)

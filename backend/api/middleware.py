@@ -12,3 +12,4 @@ async def jwt_auth_middleware(request, handler):
     """
     authenticated_request = await check_authentication(request)
     return await handler(authenticated_request)
+    

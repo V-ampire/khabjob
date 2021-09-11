@@ -6,7 +6,8 @@ import jwt
 
 from datetime import datetime
 from dataclasses import dataclass
-from typing import Optional, Dict, Tuple, Any
+import json
+from typing import Optional, Tuple, Any
 
 from core.services.auth import (
     get_user,
@@ -19,6 +20,8 @@ from config import AUTH_CONFIG
 
 @dataclass
 class User:
+    """User representation for storing in request."""
+
     id: int
     username: str
     password_hash: str
@@ -26,10 +29,10 @@ class User:
 
 class TokenError(Exception):
     """Raise if token is invalid."""
+    
     def __init__(self, message, **kwargs):
         self.message = message
         super().__init__(self, message, **kwargs)
-
 
 
 async def authenticate(request: web.Request) -> Tuple[User, str, None]:
@@ -37,7 +40,8 @@ async def authenticate(request: web.Request) -> Tuple[User, str, None]:
     Authenticate request by jwt token.
 
     If user authenticated return tuple (user, token),
-    where user is instance of User dataclass, else return None.
+    where user is instance of User dataclass, else return (None, None),
+    or raise 403 HTTPForbidden.
     """
     raw_token = authenticate_headers(request)
 
@@ -55,17 +59,25 @@ async def authenticate(request: web.Request) -> Tuple[User, str, None]:
 
     try:
         check_jwt_token_expired(jwt_exp)
-
         async with request.app['db'].acquire() as conn:
             await check_token_blacklist(conn, raw_token)
             user = await get_jwt_token_user(conn, user_id)
     except TokenError as error:
-        raise web.HTTPForbidden(reason=error.message) 
+        raise web.HTTPForbidden(
+            text=json.dumps({'reason': error.message}),
+            content_type='application/json',
+        )
 
     return (user, raw_token)
 
 
-def authenticate_headers(request):
+def authenticate_headers(request: web.Request) -> Optional[str]:
+    """
+    Extract jwt token from authorization header.
+
+    If no auth header or token return None.
+    Raise HTTPForbidden 403 if token has invalid format.
+    """
     header_body = request.headers.get(AUTH_CONFIG['JWT_HEADER_NAME'], None)
 
     if header_body is None:
@@ -83,7 +95,10 @@ def authenticate_headers(request):
         return None
 
     if len(parts) != 2:
-        raise web.HTTPForbidden(reason='Bad authorization header.')
+        raise web.HTTPForbidden(
+            text=json.dumps({'reason': 'Bad authorization header.'}),
+            content_type='application/json',
+        )
 
     return parts[1]
 
@@ -148,7 +163,7 @@ async def check_authentication(request: web.Request) -> web.Request:
 
 
 def make_jwt_token_for_user(user_id):
-    """Make jswt token with payload with user_id."""
+    """Make jwt token with payload with user_id and token expired."""
     lifetime = AUTH_CONFIG['JWT_LIFETIME']
     jwt_exp_dt = datetime.utcnow() + lifetime
     
@@ -164,17 +179,19 @@ def make_jwt_token_for_user(user_id):
     )
 
 
-async def authenticate_user(conn: SAConnection, **user_credentials: Dict[str, str]) -> User:
+async def authenticate_user(conn: SAConnection, **user_credentials) -> User:
     """
     Authenticate user by credentials.
 
-    If success return User, else None.
+    If success return User, else raise HTTPForbidden 403.
     """
     password = user_credentials.pop('password')
     user = await get_user(conn, **user_credentials)
 
     if user is None or not is_password_confirm(password, user.password_hash):
-        raise web.HTTPForbidden(reason='Invalid user credentials.')
+        raise web.HTTPForbidden(
+            text=json.dumps({'reason': 'Invalid user credentials.'}),
+            content_type='application/json',
+        )
     
     return user
-

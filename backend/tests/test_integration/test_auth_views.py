@@ -21,9 +21,10 @@ async def test_login_view_with_invalid_password(api_client, create_user):
     }
 
     resp = await api_client.post(url, json=credentials)
+    result = await resp.json()
 
     assert resp.status == 403
-    assert resp.reason == 'Invalid user credentials.'
+    assert result['reason'] == 'Invalid user credentials.'
 
 
 async def test_login_view_with_invalid_username(api_client):
@@ -36,9 +37,10 @@ async def test_login_view_with_invalid_username(api_client):
     }
 
     resp = await api_client.post(url, json=credentials)
+    result = await resp.json()
 
     assert resp.status == 403
-    assert resp.reason == 'Invalid user credentials.'
+    assert result['reason'] == 'Invalid user credentials.'
 
 
 @freeze_time("2021-01-14 03:21:34")
@@ -91,7 +93,7 @@ async def test_logout_view_unauthorized(api_client, create_user, aio_engine):
 
     url = api_client.app.router['logout'].url_for()
 
-    resp = await api_client.get(url, headers=headers)
+    resp = await api_client.get(url)
     
     assert resp.status == 403
 

@@ -4,7 +4,7 @@ Based on https://github.com/alvassin/backendschool2019/blob/master/analyzer/api/
 In this module implements helpers to convert to json such special objects as
 aiopg.RowProxy and date object.
 """
-from aiohttp.payload import JsonPayload as BaseJsonPayload, Payload
+from aiohttp.payload import JsonPayload as BaseJsonPayload
 from aiohttp.typedefs import JSONEncoder
 
 from aiopg.sa.result import RowProxy

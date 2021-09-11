@@ -1,5 +1,7 @@
 import asyncio
+
 import aiofiles
+
 from bs4 import BeautifulSoup
 
 import json
@@ -8,7 +10,8 @@ from random import uniform
 import time
 from typing import List, Dict
 
-from jobparser.base import BaseParser, ParserConfigError
+from jobparser.base import BaseParser
+
 from config import BASE_DIR
 
 
@@ -108,7 +111,10 @@ class FarpostParser(BaseParser):
                 if self.is_today_vacancy(item):
                     vacancy = {
                         'name': item.find('a', class_='bulletinLink').get_text(),
-                        'source': self.base_url + item.find('a', class_='bulletinLink').get('href'),
+                        'source': '{0}{1}'.format(
+                            self.base_url,
+                            item.find('a', class_='bulletinLink').get('href')
+                        ),
                         'source_name': self.name,
                     }
                     vacancies.append(vacancy)
@@ -119,7 +125,10 @@ class FarpostParser(BaseParser):
             await asyncio.sleep(uniform(2,3))
 
     def is_today_vacancy(self, item) -> bool:
-        """Todays vacancies include word 'сегодня' in the item-date node or have no date at all."""
+        """
+        Todays vacancies include word 'сегодня' in the item-date node,
+        or have no date at all.
+        """
         date_div = item.find('div', class_='date')
         return date_div is None or date_div.get_text().find('сегодня') >= 0
 
@@ -148,9 +157,11 @@ class VkParser(BaseParser):
                 name_end_index = post.get('text').find('\n')
                 vacancy = {
                     'name': post.get('text')[:name_end_index],
-                    'source': '{0}/wall{1}_{2}'.format(self.base_url,
-                                                    str(post.get('owner_id')), 
-                                                    post.get('id')),
+                    'source': '{0}/wall{1}_{2}'.format(
+                        self.base_url,
+                        str(post.get('owner_id')), 
+                        post.get('id'),
+                    ),
                     'source_name': self.name,
                 }
                 vacancies.append(vacancy)

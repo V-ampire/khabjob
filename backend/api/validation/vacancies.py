@@ -1,11 +1,10 @@
 from pydantic import (
-    BaseModel, 
-    ValidationError,
-    Field,
+    BaseModel,
     validator,
     root_validator,
     StrictBool, 
-    HttpUrl)
+    HttpUrl
+)
 
 from datetime import date
 from typing import Optional
@@ -25,6 +24,7 @@ class BaseVacancy(BaseModel):
 
     @validator('source')
     def convert_source_to_str(cls, source_http):
+        """Convert HttpUrl type to string."""
         return str(source_http)
 
     class Config:
@@ -63,7 +63,6 @@ class PrivatePostVacancy(BaseVacancy):
     is_published: StrictBool
    
 
-
 class PrivatePutVacancy(BaseVacancy):
     """
     Model to validate vacancy data to full update vacancy by admin API.
@@ -94,6 +93,7 @@ class SearchOptions(BaseModel):
 
     @validator('date_from', pre=True)
     def validate_date_from_format(cls, date_from):
+        """Limits input date formats."""
         return validate_date_field_type(date_from)
 
 

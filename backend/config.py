@@ -38,7 +38,7 @@ PARSERS_CONFIG = {
 VACANCY_EXPIRED = timedelta(weeks=4*2) # Clean vacancies every 2 mounth
 
 
-SELF_SOURCE_NAME = 'khabjob' # name of source for vacancies added on site
+SELF_SOURCE_NAME = 'khabjob' # Name of source for vacancies added on site
 
 
 POSTGRES_CONFIG = {

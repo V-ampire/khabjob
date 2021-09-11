@@ -12,6 +12,7 @@ from config import AUTH_CONFIG
 
 
 async def create_user(conn: SAConnection, username: str, password: str) -> RowProxy:
+    """Add user to database."""
     password_hash = hash_password(password)
 
     stmt =  insert(users_table).values(
@@ -24,8 +25,7 @@ async def create_user(conn: SAConnection, username: str, password: str) -> RowPr
 
 
 async def get_user(conn: SAConnection, **user_data) -> Optional[RowProxy]:
-    """Return user from database."""
-
+    """Return user from database. If user does not exist return None."""
     stmt = select(users_table).filter_by(**user_data)
 
     result = await conn.execute(stmt)
@@ -33,12 +33,14 @@ async def get_user(conn: SAConnection, **user_data) -> Optional[RowProxy]:
 
 
 async def update_user(conn: SAConnection, user_id: int, **update_data) -> Optional[RowProxy]:
-    """Update user. If user does not exists return None."""
+    """Update user. If user does not exist return None."""
     password = update_data.pop('password', None)
     if password is not None:
         update_data.update({'password_hash': hash_password(password)})
     
-    stmt = update(users_table).filter_by(id=user_id).values(**update_data).returning(users_table)
+    stmt = update(users_table).filter_by(
+        id=user_id
+    ).values(**update_data).returning(users_table)
     
     result = await conn.execute(stmt)
     return await result.fetchone()
@@ -65,13 +67,15 @@ def is_password_confirm(password: str, password_hash: str, salt: Optional[str]=N
 
 async def blacklist_token(conn: SAConnection, token: str) -> RowProxy:
     """Add token to blacklist."""
-    stmt = insert(jwt_blacklist_table).values(token=token).returning(jwt_blacklist_table.c.token)
+    stmt = insert(jwt_blacklist_table).values(
+        token=token
+    ).returning(jwt_blacklist_table.c.token)
     result = await conn.execute(stmt)
     return await result.first()
 
 
 async def is_token_blacklisted(conn, token: str) -> bool:
-    """Check whether token in blacklist."""
+    """Check whether the token is in blacklist."""
     stmt = select(jwt_blacklist_table).filter_by(token=token)
     result = await conn.execute(stmt)
     return await result.first()

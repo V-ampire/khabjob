@@ -1,9 +1,11 @@
 from aiohttp import web
 
+from aiopg.sa.result import RowProxy
+
 from psycopg2.errors import UniqueViolation
 
 import json
-from typing import List, Mapping, Dict, Union
+from typing import List, Mapping
 
 from api.views.mixins import DbViewMixin
 
@@ -12,9 +14,15 @@ from core.db.utils import parse_unique_violation_fields
 
 
 class BaseView(web.View):
-    """Base class for rest api views."""
+    """
+    Base class for rest api views.
+    
+    Use ID as lookup field by default.
+    Override lookup_field attribute to change lookup field.
+    """
 
     validator_class = None
+    lookup_field = 'id'
 
     def get_validator_class(self):
         """Override this method to customize getting validator class."""
@@ -28,19 +36,16 @@ class BaseView(web.View):
         """Implement handler to return list of items by search."""
         raise NotImplementedError
 
-    async def detail(self, *args, **kwargs)  -> Dict:
+    async def detail(self, *args, **kwargs)  -> Mapping:
         """Implement handler to return info about one item."""
         raise NotImplementedError
 
-    async def create(self, *args, **kwargs) -> Dict:
+    async def create(self, *args, **kwargs) -> Mapping:
         """Implement handler to create item."""
         raise NotImplementedError
 
-    async def update(self, *args, **kwargs) -> Dict:
+    async def update(self, *args, **kwargs) -> Mapping:
         """Implement handler to full update item."""
-        raise NotImplementedError
-    
-        """Implement handler to partial update item."""
         raise NotImplementedError
     
     async def destroy(self, *args, **kwargs) -> None:
@@ -68,7 +73,7 @@ class BaseVacancyView(DbViewMixin, BaseView):
             raise web.HTTPNotFound()
         return vacancy_id
 
-    async def filter_by(self, **options) -> List[Mapping]:
+    async def filter_by(self, **options) -> List[RowProxy]:
         """Return vacancy list by filter service."""
         async with self.db.acquire() as conn:
             vacancies_data = await vacancies.filter_vacancies(
@@ -76,7 +81,7 @@ class BaseVacancyView(DbViewMixin, BaseView):
             )
         return vacancies_data
 
-    async def search(self, **options) -> List[Mapping]:
+    async def search(self, **options) -> List[RowProxy]:
         """Return vacancy list by serach service."""
         async with self.db.acquire() as conn:
             vacancies_data = await vacancies.search_vacancies(
@@ -84,7 +89,7 @@ class BaseVacancyView(DbViewMixin, BaseView):
             )
         return vacancies_data
     
-    async def detail(self, vacancy_id: int, **options) -> Mapping:
+    async def detail(self, vacancy_id: int, **options) -> RowProxy:
         """Return info about one vacancy using vacancy ID."""
         vacancy_id = self.validate_vacancy_id(vacancy_id)
         async with self.db.acquire() as conn:
@@ -95,7 +100,7 @@ class BaseVacancyView(DbViewMixin, BaseView):
             raise web.HTTPNotFound()
         return vacancies_data[0]
 
-    async def create(self, **vacancy_data) -> Mapping:
+    async def create(self, **vacancy_data) -> RowProxy:
         """
         Create and return new vacancy data.
         
@@ -107,10 +112,13 @@ class BaseVacancyView(DbViewMixin, BaseView):
                 created_vacancy = await vacancies.create_vacancy(conn, **vacancy_data)
             except UniqueViolation as error:
                 error_data = parse_unique_violation_fields(error)
-                raise web.HTTPBadRequest(text=json.dumps(error_data), content_type='application/json')
+                raise web.HTTPBadRequest(
+                    text=json.dumps(error_data),
+                    content_type='application/json',
+                )
         return created_vacancy
 
-    async def update(self, vacancy_id: int, **update_data) -> Mapping:
+    async def update(self, vacancy_id: int, **update_data) -> RowProxy:
         """Update vacancy by vacancy ID."""
         vacancy_id = self.validate_vacancy_id(vacancy_id)
         async with self.db.acquire() as conn:
@@ -127,4 +135,3 @@ class BaseVacancyView(DbViewMixin, BaseView):
                 conn, vacancy_id,
             )
         return result
-

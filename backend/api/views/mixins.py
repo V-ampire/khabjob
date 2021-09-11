@@ -1,3 +1,7 @@
+"""
+Mixins for views.
+Mixins for REST API views.
+"""
 from aiohttp import web
 
 from aiopg.sa import Engine
@@ -5,6 +9,7 @@ from aiopg.sa import Engine
 from api.validation import utils as validation_utils
 from api.utils import get_pagination_params, get_request_payload
 
+import json
 from typing import Tuple, Dict, Any
 
 
@@ -23,7 +28,10 @@ class AuthenticatedRequiredMixin:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.request.get('user', None) is None:
-            raise web.HTTPForbidden(reason='Access authenticated only.')
+            raise web.HTTPForbidden(
+                text=json.dumps({'reason': 'Access authenticated only.'}),
+                content_type='application/json',
+            )
 
 
 class ListMixin:
@@ -40,7 +48,7 @@ class ListMixin:
     @property
     def offset(self) -> int:
         """Return offset option."""
-        offset =  int(self.request.query.get('offset', 0))
+        offset = int(self.request.query.get('offset', 0))
         return offset if offset >= 0 else 0
 
     @property
@@ -50,9 +58,7 @@ class ListMixin:
         return limit if limit > 0 else self.pagination_limit
 
     async def get_list(self, *args, **kwargs):
-        """Get list of items."""
-        results = []
-
+        """Handler for method GET for list of items."""
         if self.request.query.keys() & set(self.search_options):
             search_query = {
                 opt: self.request.query[opt] for opt in self.search_options
@@ -83,17 +89,10 @@ class ListMixin:
 
     
 class DetailMixin:
-    """
-    Mixin implements get_detail method returns information about the item.
-
-    Use ID as lookup field by default.
-    Override lookup_field attribute to change lookup field.
-    """
-
-    lookup_field = 'id'
+    """Mixin implements get_detail method returns information about the item."""
 
     async def get_detail(self, *args, **kwargs):
-        """Get info about item."""
+        """Handler for method GET for one item."""
         if not self.lookup_field in self.request.match_info:
             raise web.HTTPNotFound()
         lookup = self.request.match_info[self.lookup_field]
@@ -116,16 +115,11 @@ class CreateMixin:
 
 
 class UpdateMixin:
-    """
-    Mixin implements patch and put methods to create item.
-    
-    Use ID as lookup field by default.
-    Override lookup_field attribute to change lookup field.
-    """
+    """Mixin implements patch and put methods to create item."""
 
     async def _get_update_data(self) -> Tuple[str, int, Dict[str, Any]]:
         """
-        Return request data or raise HTTPUnsupportedMediaType.
+        Return request data and lookup field.
         
         :return: Tuple (lookup, data) where lookup is value of lookup field.
         """
@@ -148,9 +142,9 @@ class UpdateMixin:
         return web.Response(body=updated_item, status=200)
 
     async def patch(self, *args, **kwargs):
-        """Partitial update item."""
+        """Partial update item."""
         lookup, update_data = await self._get_update_data()
-        validated_data = validated_data = validation_utils.validate_request_data(
+        validated_data = validation_utils.validate_request_data(
             self.get_validator_class(),
             update_data,
             exclude_unset=True
@@ -160,12 +154,7 @@ class UpdateMixin:
 
 
 class DeleteMixin:
-    """
-    Mixin implements delete method to remove item.
-    
-    Use ID as lookup field by default.
-    Override lookup_field attribute to change lookup field.
-    """
+    """Mixin implements delete method to remove item."""
     
     async def delete(self, *args, **kwargs):
         """Delete item."""

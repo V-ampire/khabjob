@@ -7,7 +7,7 @@ from api.routes import setup_routes
 from api.payloads import JsonPayload
 
 import logging
-from typing import Dict, Mapping 
+from typing import Dict, Mapping, Optional
 from types import MappingProxyType
 
 from core.db.utils import get_postgres_dsn
@@ -26,9 +26,8 @@ async def setup_db(app: web.Application):
         await app['db'].wait_closed()
 
 
-
-def init_app(config: Dict={}) -> web.Application:
-    """Initializae apllication."""
+def init_app(config: Optional[Dict]=None) -> web.Application:
+    """Initialize apllication."""
     app = web.Application(middlewares=[jwt_auth_middleware])
 
     setup_routes(app)
@@ -43,5 +42,5 @@ def init_app(config: Dict={}) -> web.Application:
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    app = init_app({})
+    app = init_app()
     web.run_app(app)

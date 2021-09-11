@@ -4,14 +4,14 @@ Business logic to operate with vacancies.
 from aiopg.sa import SAConnection
 from aiopg.sa.result import RowProxy
 
-from sqlalchemy import select, insert, over, func, update, delete
+from sqlalchemy import select, insert, func, update, delete
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from datetime import date, datetime
 from typing import List, Dict, Optional, Tuple
 
 from core.db.schema import vacancies_table
-from core.db.utils import except_tsvector_columns, parse_unique_violation_fields
+from core.db.utils import except_tsvector_columns
 
 
 async def create_vacancy(conn: SAConnection, **vacancy_data) -> RowProxy:
@@ -22,7 +22,10 @@ async def create_vacancy(conn: SAConnection, **vacancy_data) -> RowProxy:
     return await result.first()  
 
 
-async def create_or_update_vacancy(conn: SAConnection, **vacancy_data) -> Tuple[bool, RowProxy]:
+async def create_or_update_vacancy(
+    conn: SAConnection,
+    **vacancy_data
+) -> Tuple[bool, RowProxy]:
     """
     Create vacancy or update if vacancy is exists.
     
@@ -42,15 +45,21 @@ async def create_or_update_vacancy(conn: SAConnection, **vacancy_data) -> Tuple[
 
 
 async def create_vacancy_batch(
-    conn: SAConnection, vacancies_data: List[Dict[str, str]]) -> List[RowProxy]:
+    conn: SAConnection,
+    vacancies_data: List[Dict[str, str]]
+) -> List[RowProxy]:
     """Create batch of vacancies in database."""
     stmt = insert(vacancies_table, vacancies_data).returning(vacancies_table)
     results = await conn.execute(stmt)
     return await results.fetchall()
 
 
-async def filter_vacancies(conn: SAConnection, 
-    limit: Optional[int]=None, offset: int=0, **options) -> List[RowProxy]:
+async def filter_vacancies(
+    conn: SAConnection, 
+    limit: Optional[int]=None,
+    offset: int=0,
+    **options
+) -> List[RowProxy]:
     """
     Return list of filtered with options vacancies and count of all filtered items.
     
@@ -67,11 +76,16 @@ async def filter_vacancies(conn: SAConnection,
     return await result.fetchall()
 
 
-async def search_vacancies(conn: SAConnection, 
-                            date_from: Optional[date]=None, date_to: Optional[date]=None, 
-                            search_query: Optional[str]=None, 
-                            source_name: Optional[str]=None, published_only: bool=True, 
-                            limit: Optional[int]=None, offset: int=0) -> List[RowProxy]:
+async def search_vacancies(
+    conn: SAConnection, 
+    date_from: Optional[date]=None,
+    date_to: Optional[date]=None, 
+    search_query: Optional[str]=None, 
+    source_name: Optional[str]=None,
+    published_only: bool=True, 
+    limit: Optional[int]=None,
+    offset: int=0
+) -> List[RowProxy]:
     """
     Search vacancies by params.
 
@@ -85,10 +99,10 @@ async def search_vacancies(conn: SAConnection,
     :return: list of found vacancies and count of all found items.
     """
     columns = except_tsvector_columns(vacancies_table)
+    stmt = select(*columns, func.count().over().label("count"))
+    
     if published_only:
-        stmt = select(*columns, func.count().over().label("count")).filter_by(is_published=True)
-    else:
-        stmt = select(*columns)
+        stmt = stmt.filter_by(is_published=True)
 
     if date_from is not None:
         stmt = stmt.where(vacancies_table.c.modified_at >= date_from)

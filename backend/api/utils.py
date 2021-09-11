@@ -1,8 +1,16 @@
+from aiohttp import web
+
+import json
 from yarl import URL
-from typing import List, Dict, Optional
+from typing import Dict, Optional, Any
 
 
-def get_pagination_params(url: URL, count: int, limit: int=0, offset: int=0) -> Dict[str, Optional[str]]:
+def get_pagination_params(
+    url: URL,
+    count: int,
+    limit: int=0,
+    offset: int=0
+) -> Dict[str, Optional[str]]:
     """
     Return pagination params for resource.
     """
@@ -18,7 +26,11 @@ def get_pagination_params(url: URL, count: int, limit: int=0, offset: int=0) -> 
         next_url = str(url.update_query({'offset': next_offset, 'limit': limit}))
 
     if previous_offset >= 0:
-        previous_url = str(url.update_query({'offset': previous_offset, 'limit': limit}))
+        previous_url = str(url.update_query({
+            'offset': previous_offset,
+            'limit': limit
+        }))
+    
     return {
         'count': count,
         'next': next_url,
@@ -26,7 +38,7 @@ def get_pagination_params(url: URL, count: int, limit: int=0, offset: int=0) -> 
     }
 
 
-async def get_request_payload(request):
+async def get_request_payload(request: web.Request) -> Dict[str, Any]:
     """
     Return dict with request payload data.
     
@@ -39,9 +51,13 @@ async def get_request_payload(request):
     """
     if request.content_type == 'application/json':
         return await request.json()
-    elif request.content_type in ['multipart/form-data', 'application/x-www-form-urlencoded']:
+    elif request.content_type in [
+        'multipart/form-data',
+        'application/x-www-form-urlencoded'
+    ]:
         return await request.post()
     else:
-        raise web.HTTPUnsupportedMediaType(reason='Unsupported type of update data.')
-
-
+        raise web.HTTPUnsupportedMediaType(
+            text=json.dumps({'reason': 'Unsupported type of update data.'}),
+            content_type='application/json',
+        )

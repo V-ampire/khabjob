@@ -1,11 +1,9 @@
-from aiopg.sa import create_engine as create_aioengine
-
 from alembic.config import Config
 from alembic.command import upgrade
 
 from psycopg2.errors import UniqueViolation
 
-from sqlalchemy import create_engine, MetaData, Table, Column
+from sqlalchemy import create_engine, Table, Column
 from sqlalchemy.dialects.postgresql import TSVECTOR
 
 import re
@@ -89,8 +87,3 @@ def apply_migrations():
     alembic_config = Config(str(BASE_DIR.joinpath('alembic.ini')))
     alembic_config.set_main_option("sqlalchemy.url", get_postgres_dsn())
     upgrade(alembic_config, 'head')
-
-
-
-
-

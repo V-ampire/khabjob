@@ -1,6 +1,6 @@
 from aiohttp import ClientSession
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, Optional
 
 
 class ParserConfigError(Exception):
@@ -13,7 +13,11 @@ class BaseParser():
     base_url = None
     name = None
 
-    DEFAULT_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36'
+    DEFAULT_USER_AGENT = (
+        'Mozilla/5.0 (X11; Linux x86_64) ' 
+        'AppleWebKit/537.36 (KHTML, like Gecko) '
+        'Chrome/90.0.4430.212 Safari/537.36'
+    )
 
     def __init__(self, session: ClientSession, config: Dict) -> None:
         """Initialization."""
@@ -42,7 +46,12 @@ class BaseParser():
         headers = {
             'User-Agent': self.config.get('user_agent', self.DEFAULT_USER_AGENT)
         }
-        async with self.session.get(url, headers=headers, raise_for_status=True, **kwargs) as resp:
+        async with self.session.get(
+            url,
+            headers=headers,
+            raise_for_status=True,
+            **kwargs
+        ) as resp:
             html = await resp.text()
         return html
 
@@ -57,7 +66,13 @@ class BaseParser():
         if headers is not None:
             request_headers.update(headers)
 
-        async with self.session.get(url, params=params, headers=request_headers, raise_for_status=True, **kwargs) as resp:
+        async with self.session.get(
+            url,
+            params=params,
+            headers=request_headers,
+            raise_for_status=True,
+            **kwargs
+        ) as resp:
             data = await resp.json()
         return data
 

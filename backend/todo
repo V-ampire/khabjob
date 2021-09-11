@@ -4,6 +4,7 @@
 
 
 - Линтер
+- init_app config?
 
 - Логи
     - QueueLogger в файл (ротейт?) для прода
@@ -13,18 +14,3 @@
 - Фронтенд
 
 - Деплой
-
-
-Fix tests:
-
-FAILED tests/test_integration/test_auth_views.py::test_logout_view_unauthorized[pyloop] - NameError: name 'headers' is not defined
-FAILED tests/test_integration/test_parsers.py::test_vk[pyloop] - assert 0 > 0
-FAILED tests/test_integration/test_services/test_vacancies_services.py::test_create_vacancy[pyloop] - assert (1, datetime....', None, True) == (1, da...
-FAILED tests/test_unit/test_api_auth.py::test_check_token_blacklist_success - ValueError: too many values to unpack (expected 2)
-FAILED tests/test_unit/test_api_validation.py::test_validate_request_query_with_invalid_params - assert "{'id': 'abc'}" in ''
-FAILED tests/test_unit/test_api_validation.py::test_validate_request_data_with_invalid_payload - assert "{'username': 'ObiOne', 'is_jedi': 'yes'}" in ''
-FAILED tests/test_unit/test_jobparser_utils.py::test_parse_vacancies_to_db_all_parsers[pyloop] - AssertionError: assert 0 == 1
-FAILED tests/test_unit/test_jobparser_utils.py::test_parse_vacancies_to_db_concrete_parsers[pyloop] - KeyError: 'source_name'
-FAILED tests/test_unit/test_views/test_mixins.py::test_create_by_unsupported_type[pyloop] - AssertionError: assert 500 == 415
-FAILED tests/test_unit/test_views/test_mixins.py::test_update_mixin_full_update_by_unsupported_type[pyloop] - AssertionError: assert 500 == 415
-FAILED tests/test_unit/test_views/test_mixins.py::test_update_mixin_partial_update_by_unsupported_type[pyloop] - AssertionError: assert 500 == 415

@@ -1,18 +1,22 @@
-from aiohttp.web import Response, HTTPBadRequest
+from aiohttp.web import HTTPBadRequest
 
 from pydantic import BaseModel, ValidationError
 
 from datetime import date
 import json
 import logging
-from typing import List, Optional, Dict, Any, Union
+from typing import Dict, Any, Union
 
 
 logger = logging.getLogger(__name__)
 
 
 def validate_date_field_type(raw_date: Any) -> date:
-    """Value for date field must be only str in iso format or datetime.date instance."""
+    """
+    Value for date field must be only str in iso format or datetime.date instance.
+
+    :param raw_date: Raw date value, e.g. extracted from GET params.
+    """
     if isinstance(raw_date, str):
         return date.fromisoformat(raw_date)
     elif isinstance(raw_date, date):
@@ -25,7 +29,7 @@ def validate_request_data(
     validator: BaseModel, 
     data: Dict[str, Any], 
     exclude_unset: bool=False
-):
+) -> Dict[str, Any]:
     """
     Validate data for such methods as POST, PUT, PATCH.
 
@@ -42,7 +46,10 @@ def validate_request_data(
         error_msg = '{0},\nPayload: {1}'.format(exc, data)
         logger.error(error_msg)
         errors_info = {err['loc'][0]: err['msg'] for err in exc.errors()}
-        raise HTTPBadRequest(text=json.dumps(errors_info), content_type='application/json')
+        raise HTTPBadRequest(
+            text=json.dumps(errors_info),
+            content_type='application/json'
+        )
 
 
 QueryType = Union[str, int, date]

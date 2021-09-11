@@ -13,8 +13,9 @@ async def test_create_vacancy(aio_engine, fake_vacancies_data):
         vacancy = await vacancies.create_vacancy(conn, **vacancy_data)
 
     async with aio_engine.acquire() as conn:
+        columns = except_tsvector_columns(vacancies_table)
         cursor = await conn.execute(
-            select(vacancies_table).where(vacancies_table.c.source == vacancy_data['source'])
+            select(*columns).where(vacancies_table.c.source == vacancy_data['source'])
         )
         result_vacancy = await cursor.fetchone()
 
