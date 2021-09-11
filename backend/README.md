@@ -28,14 +28,14 @@ POSTGRES_PORT=
 
 ## Команды:
 
-- Запускает парсинг вакансий и сохраняет их в базу данных.
+Запускает парсинг вакансий и сохраняет их в базу данных.
 
-`python main.py update_vacancies`
+- `python main.py update_vacancies`
 
 
 Запускает парсинг вакансий и выводит их в консоль.
 
-`python main.py run_parsers`
+- `python main.py run_parsers`
 
 
 Запускает сервер API.
