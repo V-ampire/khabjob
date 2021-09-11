@@ -24,3 +24,24 @@ def get_pagination_params(url: URL, count: int, limit: int=0, offset: int=0) -> 
         'next': next_url,
         'previous': previous_url,
     }
+
+
+async def get_request_payload(request):
+    """
+    Return dict with request payload data.
+    
+    Supported types:
+        - application/json
+        - multipart/form-data
+        - application/x-www-form-urlencoded
+
+    If type is not supported return HTTPUnsupportedMediaType 415.
+    """
+    if request.content_type == 'application/json':
+        return await request.json()
+    elif request.content_type in ['multipart/form-data', 'application/x-www-form-urlencoded']:
+        return await request.post()
+    else:
+        raise web.HTTPUnsupportedMediaType(reason='Unsupported type of update data.')
+
+

@@ -3,7 +3,7 @@ from aiohttp import web
 from aiopg.sa import Engine
 
 from api.validation import utils as validation_utils
-from api.utils import get_pagination_params
+from api.utils import get_pagination_params, get_request_payload
 
 from typing import Tuple, Dict, Any
 
@@ -104,20 +104,9 @@ class DetailMixin:
 class CreateMixin:
     """Mixin implements post method to create item."""
 
-    async def _get_create_data(self) -> Dict[str, Any]:
-        """Return request POST data or raise HTTPUnsupportedMediaType."""
-        if self.request.content_type == 'application/json':
-            create_data = await self.request.json()
-        elif self.request.content_type in ['multipart/form-data', 'application/x-www-form-urlencoded']:
-            create_data = await self.request.post()
-        else:
-            raise web.HTTPUnsupportedMediaType(reason='Unsupported type of post data.')
-        return create_data
-
-
     async def post(self, *args, **kwargs):
         """Create new item."""
-        create_data = await self._get_create_data()
+        create_data = await get_request_payload(self.request)
         validated_data = validation_utils.validate_request_data(
             self.get_validator_class(),
             create_data,
@@ -144,14 +133,9 @@ class UpdateMixin:
             raise web.HTTPNotFound()
         lookup = self.request.match_info[self.lookup_field]
 
-        if self.request.content_type == 'application/json':
-            create_data = await self.request.json()
-        elif self.request.content_type in ['multipart/form-data', 'application/x-www-form-urlencoded']:
-            create_data = await self.request.post()
-        else:
-            raise web.HTTPUnsupportedMediaType(reason='Unsupported type of update data.')
+        update_data = await get_request_payload(self.request)
         
-        return (lookup, create_data)
+        return (lookup, update_data)
 
     async def put(self, *args, **kwargs):
         """Full update item."""

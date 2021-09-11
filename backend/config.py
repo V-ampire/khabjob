@@ -64,4 +64,5 @@ AUTH_CONFIG = {
     'JWT_AUTH_SCHEME': 'Bearer',
     'JWT_HEADER_NAME': 'Authorization',
     'JWT_LIFETIME': timedelta(days=30),
+    'PASSWORD_PATTERN': r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$'
 }

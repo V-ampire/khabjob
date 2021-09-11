@@ -7,8 +7,7 @@ from pydantic import (
 import re
 from typing import Optional
 
-
-DEFAULT_PASSWORD_PATTERN = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$'
+from config import AUTH_CONFIG
 
 
 class UserCredentials(BaseModel):
@@ -39,7 +38,7 @@ class ResetPasswordData(BaseModel):
 
 def validate_password_format(password: str, pattern: Optional[str]=None):
     """Validate password by regexp pattern."""
-    pattern = pattern or DEFAULT_PASSWORD_PATTERN
+    pattern = pattern or AUTH_CONFIG['PASSWORD_PATTERN']
     result = re.match(pattern, password)
     if result is None:
         raise ValueError(

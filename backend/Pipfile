@@ -9,6 +9,7 @@ pytest-aiohttp = "*"
 faker = "*"
 pytest-mock = "*"
 freezegun = "*"
+wemake-python-styleguide = "*"
 
 [packages]
 aiohttp = {extras = ["speedups"],version = "*"}

@@ -4,6 +4,7 @@ from api.validation.utils import validate_request_data
 from api.validation.auth import UserCredentials, ResetPasswordData
 from api.views.mixins import DbViewMixin, AuthenticatedRequiredMixin
 from api.auth import authenticate_user, make_jwt_token_for_user
+from api.utils import get_request_payload
 
 from core.services.auth import blacklist_token, update_user
 
@@ -17,7 +18,7 @@ class LoginView(DbViewMixin, web.View):
         
         Return {'user': <username>, 'jwt_token': <token>}
         """
-        credentials = await self.request.json()
+        credentials = await get_request_payload(self.request)
         validated_data = validate_request_data(
             UserCredentials,
             credentials,

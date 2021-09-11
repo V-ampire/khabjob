@@ -48,6 +48,11 @@ POSTGRES_PORT=
 - `python main.py init_db`
 
 
+Создать пользователя для доступа к закрытому API (админскому.)
+
+- `python main.py create_user`
+
+
 ## Настройка парсеров.
 
 Настройка парсеров производится в файле `config.py` с помощью словаря `PARSERS_CONFIG`:
