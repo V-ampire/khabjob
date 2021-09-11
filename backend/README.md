@@ -1,8 +1,68 @@
-Generate migrations:
-
-`alembic revision --autogenerate -m "Some message"`
+# Бекенд дл агрегатора вакансий г. Хабаровска khabjob.ru.
 
 
-Apply migrations:
+## Переменные окружения
 
-`alembic upgrade head`
+Установить следующие переменные окружения:
+
+```
+# Путь для доступа к API, с указанием протокола, 
+# например https:://khabjob.ru/api
+API_ROOT=
+
+# Секретный ключ для API superjob.ru
+SJ_SECRET_KEY=
+
+# Параметры для доступа к API Вконтакте
+VK_CLIENT_ID=
+VK_ACCESS_TOKEN=
+
+# Настройки Postgresql
+POSTGRES_DB=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_HOST=
+POSTGRES_PORT=
+```
+
+
+## Команды:
+
+- `python main.py update_vacancies`
+
+Запускает парсинг вакансий и сохраняет их в базу данных.
+
+
+- `python main.py run_parsers`
+
+Запускает парсинг вакансий и выводит их в консоль.
+
+
+- `python main.py run_app`
+
+Запускает сервер API.
+
+
+- `python main.py init_db`
+
+Инициализирует базу данных.
+
+
+## Настройка парсеров.
+
+Настройка парсеров производится в файле `config.py` с помощью словаря `PARSERS_CONFIG`:
+
+```
+"<parser name>": {
+    ... # параметры парсера
+    "is_active": True # обязательное поле, определяет запускать ли этот парсер. 
+    }
+```
+
+
+## Разработка
+
+- Запуск миграций: `alembic upgrade head`
+
+- Запуск тестов: `pytest`
+
