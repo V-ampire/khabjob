@@ -4,7 +4,6 @@
 
 
 - Линтер
-- init_app config?
 
 - Логи
     - QueueLogger в файл (ротейт?) для прода
