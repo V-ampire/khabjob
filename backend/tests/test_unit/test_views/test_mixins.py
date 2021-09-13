@@ -47,7 +47,7 @@ def api(aiohttp_client, loop):
 
 
 async def test_list_by_search(mocker, api):
-    ListView.search_options = ['search_query']
+    ListView.search_options = ['search_query', 'date_from', 'date_to']
     ListView.search.return_value = []
 
     response = await api.get('/list?search_query=Jedi')

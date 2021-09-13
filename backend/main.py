@@ -80,10 +80,12 @@ def runparsers(parsers: List[str]):
 
 
 @click.command(name='run_app')
-def runapp():
+@click.option('-h', '--host', type=str)
+@click.option('-p', '--port', type=str)
+def runapp(host, port):
     """Start API server."""
     app = init_app({})
-    web.run_app(app)
+    web.run_app(app, host=host, port=port)
 
 
 @click.command(name='create_user')

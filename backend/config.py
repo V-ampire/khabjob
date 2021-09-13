@@ -10,6 +10,9 @@ env.read_env()  # read .env file, if it exists
 BASE_DIR = pathlib.Path(__file__).parent
 
 
+DEBUG = env.bool('DEBUG', default=False)
+
+
 PARSERS_CONFIG = {
     "superjob": {
         "parse_url": "https://api.superjob.ru",

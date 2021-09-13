@@ -59,9 +59,10 @@ class ListMixin:
 
     async def get_list(self, *args, **kwargs):
         """Handler for method GET for list of items."""
-        if self.request.query.keys() & set(self.search_options):
+        passed_search_options = self.request.query.keys() & set(self.search_options)
+        if len(passed_search_options) > 0:
             search_query = {
-                opt: self.request.query[opt] for opt in self.search_options
+                opt: self.request.query[opt] for opt in passed_search_options
             }
             results = await self.search(**search_query)
         

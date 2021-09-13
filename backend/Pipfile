@@ -10,6 +10,7 @@ faker = "*"
 pytest-mock = "*"
 freezegun = "*"
 flake8 = "*"
+aiohttp-middlewares = "*"
 
 [packages]
 aiohttp = {extras = ["speedups"],version = "*"}
