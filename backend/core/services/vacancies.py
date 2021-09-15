@@ -81,7 +81,6 @@ async def search_vacancies(
     date_from: Optional[date]=None,
     date_to: Optional[date]=None, 
     search_query: Optional[str]=None, 
-    source_name: Optional[str]=None,
     published_only: bool=True, 
     limit: Optional[int]=None,
     offset: int=0
@@ -112,9 +111,6 @@ async def search_vacancies(
 
     if search_query is not None:
         stmt = stmt.where(vacancies_table.c.search_index.match(str(search_query)))
-
-    if source_name is not None:
-        stmt = stmt.filter_by(source_name=source_name)
 
     stmt = stmt.limit(limit).offset(offset).order_by(
         vacancies_table.c.modified_at, vacancies_table.c.source_name
