@@ -44,15 +44,16 @@
 </template>
 
 <script>
-import { ON_CHANGE } from '@/events/types'
-import eventBus from '@/events/eventBus'
+import { mapMutations } from 'vuex';
 import { convertToISODateString } from '@/utils.js'
+import { ON_SEARCH_VACANCIES } from '@/events/types'
+import eventBus from '@/events/eventBus'
 
 export default {
   data() {
     return {
       vacancyDate: new Date(),
-      searchQuery: ''
+      searchQuery: null
     }
   },
   computed: {
@@ -61,15 +62,18 @@ export default {
     },
   },
   methods: {
-    search() {
-      const searchOptions = {
+    ...mapMutations('vacancies', [
+      'SET_SEARCH_OPTS',
+    ]),
+    async search() {
+      // Мутировать store.searchOptions
+      this.SET_SEARCH_OPTS({
         date_from: convertToISODateString(this.vacancyDate),
         date_to: convertToISODateString(this.vacancyDate),
-      }
-      if (this.searchQuery) {
-        Object.assign(searchOptions, {search_query: this.searchQuery})
-      }
-      eventBus.$emit(ON_SEARCH, searchOptions)
+        search_query: (this.searchQuery) ? this.searchQuery : null
+      })
+      // Вызвать событие пагинации вакансий
+      eventBus.$emit(ON_SEARCH_VACANCIES)
     }
   },
 }

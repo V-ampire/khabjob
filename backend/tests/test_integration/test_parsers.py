@@ -28,6 +28,8 @@ async def test_hh(loop):
     async with aiohttp.ClientSession() as session:
         parser = HHParser(session, parser_config)
         vacancies = await parser.get_vacancies()
+
+        print(len(vacancies))
         
         assert len(vacancies) > 0
         for vacancy in vacancies:
@@ -42,6 +44,8 @@ async def test_superjob(loop):
     async with aiohttp.ClientSession() as session:
         parser = SuperjobParser(session, parser_config)
         vacancies = await parser.get_vacancies()
+
+        print(len(vacancies))
         
         assert len(vacancies) > 0
         for vacancy in vacancies:

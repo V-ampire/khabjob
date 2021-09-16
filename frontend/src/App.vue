@@ -4,7 +4,7 @@
       <VacanciesSearchBar ref="searchBar" />
     </div>
     <div class="flex-wrapper">
-      <div class="wrapper">
+      <div class="wrapper h-100 d-flex flex-column">
         <header class="header mb-2" id="header">
           <nav class="navbar justify-content-between m-auto">
             <a class="navbar-brand" href="#">
@@ -20,7 +20,7 @@
             </div>
           </nav>
         </header>
-        <main>
+        <main class="flex-fill">
           <router-view/>
         </main>
       </div>

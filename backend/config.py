@@ -18,7 +18,7 @@ PARSERS_CONFIG = {
         "parse_url": "https://api.superjob.ru",
         "secret_key": env.str('SJ_SECRET_KEY'),
         "id": 1091,
-        "v": "2.0",
+        "v": "2.33",
         "is_active": True
     },
     "farpost": {

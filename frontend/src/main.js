@@ -9,9 +9,8 @@ import Vue from 'vue'
 
 import './plugins/bootstrap-vue'
 import router from './router'
-import App from './App.vue'
 import store from './store'
-
+import App from './App.vue'
 
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 library.add(faChevronCircleRight, faSearch)

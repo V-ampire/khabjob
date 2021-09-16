@@ -53,9 +53,10 @@
 </template>
 
 <script>
-import eventBus from '@/events/eventBus'
-import { ON_SEARCH } from '@/events/types'
+import { mapMutations } from 'vuex';
 import { convertToISODateString } from '@/utils.js'
+import { ON_SEARCH_VACANCIES } from '@/events/types'
+import eventBus from '@/events/eventBus'
 
 export default {
   props: {
@@ -71,27 +72,22 @@ export default {
       searchQuery: ''
     }
   },
-  computed: {
-    searchOptions() {
-      const search = {}
-      if (this.dateFrom) {
-        search.date_from = convertToISODateString(this.dateFrom)
-      }
-      if (this.dateTo) {
-        search.date_to = convertToISODateString(this.dateTo)
-      }
-      if (this.searchQuery) {
-        search.search_query = this.searchQuery
-      }
-      return search
-    }
-  },
   methods: {
+    ...mapMutations('vacancies', [
+      'SET_SEARCH_OPTS',
+    ]),
     open() {
       this.$refs.modal.show()
     },
     search() {
-      eventBus.$emit(ON_SEARCH, this.searchOptions)
+      // Мутировать store.searchOptions
+      this.SET_SEARCH_OPTS({
+        date_from: (this.dateFrom) ? convertToISODateString(this.dateFrom) : null,
+        date_to: (this.dateTo) ? convertToISODateString(this.dateTo) : null,
+        search_query: (this.searchQuery) ? this.searchQuery : null
+      })
+      // Вызвать событие поиска вакансий
+      eventBus.$emit(ON_SEARCH_VACANCIES)
       this.$refs.modal.hide()
     }
   },

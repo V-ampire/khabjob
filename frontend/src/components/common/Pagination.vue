@@ -21,12 +21,13 @@ export default {
   },
   data () {
     return {
-      currrentPage: 1
+      currentPage: 1
     }
   },
   methods: {
     pageChange(event, page) {
-      this.currrentPage = page
+      console.log(page)
+      this.currentPage = page
       this.$emit(ON_PAGINATE, page)
     }
   },

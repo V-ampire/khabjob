@@ -4,6 +4,7 @@ import aiofiles
 
 from bs4 import BeautifulSoup
 
+from datetime import datetime
 import json
 from itertools import count
 from random import uniform
@@ -21,20 +22,31 @@ class HHParser(BaseParser):
     base_url = 'https://hh.ru'
     name = 'hh'
 
+    per_page = 100
+    _page_count = count(0)
+
+    parse_day_limit = 200
+
+    def get_params(self):
+        """Return params for request to hh.ru API."""
+        return {
+            "area": 102,
+            "period": 1,
+            "text": "Хабаровск",
+            "per_page": self.per_page,
+            "page": next(self._page_count)
+        }
+
     async def get_vacancies(self) -> List[Dict[str, str]]:
         """Return vacancies from hh.ru."""
         vacancies = []
 
-        params = {
-            "area": 102,
-            "period": 1,
-            "text": "Хабаровск",
-        }
-        vacancies = []
+        while True:
+            data = await self.get_json(self.parse_url, params=self.get_params())
 
-        data = await self.get_json(self.parse_url, params=params)
-
-        if data:
+            if not data:
+                return vacancies
+            
             for item in data['items']:
                 vacancy = {
                     'name': item['name'],
@@ -42,7 +54,13 @@ class HHParser(BaseParser):
                     'source_name': self.name,
                 }
                 vacancies.append(vacancy)
-        return vacancies
+                        
+            if any([
+                ((data['page'] + 1) * self.per_page >= data['found']), 
+                len(vacancies) >= self.parse_day_limit
+            ]):
+                # API numberring starts from 0
+                return vacancies
 
 
 class SuperjobParser(BaseParser):
@@ -51,22 +69,35 @@ class SuperjobParser(BaseParser):
     base_url = "https://superjob.ru"
     name = 'superjob'
 
+    per_page = 100
+    _page_count = count(0)
+
+    parse_day_limit = 200
+
+    def get_params(self):
+        """Return params for request to superjob.ru API."""
+        return {
+            'period': 1,
+            'town': 56,
+            'count': self.per_page,
+            'page': next(self._page_count)
+        }
+
     async def get_vacancies(self) -> List[Dict[str, str]]:
         """Return vacancies from superjob.ru."""
         vacancies = []
-
-        params = {
-            'period': 1,
-            'town': 56
-        }
+        
         headers = {
             'X-Api-App-Id': self.config.get('secret_key')
         }
         url = '{0}/{1}/vacancies'.format(self.parse_url, self.config.get('v'))
         
-        data = await self.get_json(url, params=params, headers=headers)
+        while True:
+            data = await self.get_json(url, params=self.get_params(), headers=headers)
 
-        if data:
+            if not data:
+                return vacancies
+
             for item in data['objects']:
                 vacancy = {
                     'name': item['profession'],
@@ -74,7 +105,9 @@ class SuperjobParser(BaseParser):
                     'source_name': self.name
                 }
                 vacancies.append(vacancy)
-        return vacancies
+
+                if not data['more'] or len(vacancies) >= self.parse_day_limit:
+                    return vacancies
 
 
 class FarpostParser(BaseParser):

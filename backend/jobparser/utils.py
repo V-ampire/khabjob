@@ -9,7 +9,7 @@ from typing import List, Dict
 
 from jobparser.parsers import HHParser, SuperjobParser, VkParser, FarpostParser
 
-from core.services.vacancies import create_vacancy_batch
+from core.services.vacancies import create_or_update_vacancy
 from core.db.utils import get_postgres_dsn
 
 from config import PARSERS_CONFIG
@@ -50,12 +50,20 @@ async def parse_vacancies_to_db(parsers: List[str]=[]):
             async with aio_engine.acquire() as conn:
                 for task in asyncio.as_completed(tasks):
                     vacancies = await task
-                    if len(vacancies) > 0:
-                        await create_vacancy_batch(conn, vacancies)
-                        logger.info('Saved {0} vacancies from {1}'.format(
-                            len(vacancies),
-                            vacancies[0]['source_name']
-                        ))
+                    created = 0
+                    updated = 0
+                    for vacancy in vacancies:
+                        is_created, v = await create_or_update_vacancy(conn, **vacancy)
+
+                        if is_created:
+                            created += 1
+                        else:
+                            updated +=1
+
+                    logger.info('Created: {0}, updated: {1} vacancies'.format(
+                        created,
+                        updated,
+                    ))
 
 
 async def run_parsers(parsers: List[str]=[]) -> List[Dict[str, str]]:
