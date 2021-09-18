@@ -28,12 +28,8 @@ class BaseView(web.View):
         """Override this method to customize getting validator class."""
         return self.validator_class
     
-    async def filter_by(self, *args, **kwargs) -> List:
+    async def list(self, *args, **kwargs) -> List:
         """Implement handler to return filtered list of items."""
-        raise NotImplementedError
-
-    async def search(self, *args, **kwargs) -> List:
-        """Implement handler to return list of items by search."""
         raise NotImplementedError
 
     async def detail(self, *args, **kwargs)  -> Mapping:
@@ -73,22 +69,14 @@ class BaseVacancyView(DbViewMixin, BaseView):
             raise web.HTTPNotFound()
         return vacancy_id
 
-    async def filter_by(self, **options) -> List[RowProxy]:
+    async def list(self, **options) -> List[RowProxy]:
         """Return vacancy list by filter service."""
         async with self.db.acquire() as conn:
             vacancies_data = await vacancies.filter_vacancies(
                 conn, limit=self.limit, offset=self.offset, **options
             )
         return vacancies_data
-
-    async def search(self, **options) -> List[RowProxy]:
-        """Return vacancy list by serach service."""
-        async with self.db.acquire() as conn:
-            vacancies_data = await vacancies.search_vacancies(
-                conn, limit=self.limit, offset=self.offset, **options
-            )
-        return vacancies_data
-    
+  
     async def detail(self, vacancy_id: int, **options) -> RowProxy:
         """Return info about one vacancy using vacancy ID."""
         vacancy_id = self.validate_vacancy_id(vacancy_id)

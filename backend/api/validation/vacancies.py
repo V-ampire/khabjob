@@ -90,6 +90,7 @@ class SearchOptions(BaseModel):
     date_from: Optional[date]
     date_to: Optional[date]
     search_query: Optional[str]
+    published_only: Optional[bool]
 
     @validator('date_from', pre=True)
     def validate_date_from_format(cls, date_from):
@@ -99,13 +100,24 @@ class SearchOptions(BaseModel):
 
 class PublicFilterOptions(BaseModel):
     """Model to validate filter options for public API."""
-    source_name: Optional[str]
+    modified_at: Optional[date]
+
+    @validator('modified_at', pre=True)
+    def validate_modified_at_format(cls, modified_at):
+        """Limits input date formats."""
+        return validate_date_field_type(modified_at)
 
 
 class PrivateFilterOptions(BaseModel):
     """Model to validate filter options for private API."""
     source_name: Optional[str]
     is_published: Optional[bool]
+    modified_at: Optional[date]
+
+    @validator('modified_at', pre=True)
+    def validate_modified_at_format(cls, modified_at):
+        """Limits input date formats."""
+        return validate_date_field_type(modified_at)
 
 
 

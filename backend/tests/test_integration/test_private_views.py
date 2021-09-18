@@ -143,11 +143,10 @@ async def test_private_vacancy_list_resource_by_search(api_client, create_vacanc
             date_to = expected_date_to
         )
 
-    url = api_client.app.router['vacancy_private_list'].url_for().with_query({
+    url = api_client.app.router['search_vacancies'].url_for().with_query({
         'search_query': 'Jedi',
         'date_from': expected_date_from,
         'date_to': expected_date_to,
-        'is_published': 'false' # invalid option
     })
 
     resp = await api_client.get(url, headers=headers)

@@ -33,15 +33,20 @@ async def test_vacancy_list_resource(api_client, create_vacancy, aio_engine):
 
 
 async def test_vacancy_list_resource_with_query(api_client, create_vacancy, aio_engine):
+    expected_modified_at = '2021-05-04'
+
     [await create_vacancy() for i in range(3)]
     [await create_vacancy(source_name='hh') for i in range(3)]
     [await create_vacancy(is_published=False) for i in range(5)]
+    [await create_vacancy(modified_at=expected_modified_at) for i in range(2)]
 
     async with aio_engine.acquire() as conn:
-        expected_vacancies = await filter_vacancies(conn, is_published=True, source_name='hh')
+        expected_vacancies = await filter_vacancies(
+            conn, is_published=True, modified_at=expected_modified_at
+        )
 
     url = api_client.app.router['vacancy_public_list'].url_for().with_query({
-        'source_name': 'hh',
+        'modified_at': expected_modified_at,
         'is_published': 'false' # invalid option
     })
     
@@ -50,7 +55,7 @@ async def test_vacancy_list_resource_with_query(api_client, create_vacancy, aio_
     
     expected = get_pagination_params(
         resp.url,
-        count=3,
+        count=2,
         limit=20 # Default list view limit
     )
     expected.update({'results': expected_vacancies})
@@ -109,7 +114,7 @@ async def test_vacancy_list_resource_by_search(api_client, create_vacancy, aio_e
             date_to = expected_date_to
         )
 
-    url = api_client.app.router['vacancy_public_list'].url_for().with_query({
+    url = api_client.app.router['search_vacancies'].url_for().with_query({
         'search_query': 'Jedi',
         'date_from': expected_date_from,
         'date_to': expected_date_to,

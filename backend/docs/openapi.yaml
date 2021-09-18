@@ -56,6 +56,8 @@ tags:
   description: Публичный API
 - name: 'Admin'
   description: API для админки
+- name: 'Search'
+  description: Поиск
 - name: 'Auth'
   description: API системы авторизации
 paths:
@@ -65,20 +67,8 @@ paths:
       - 'Public'
       description: Список опубликованных вакансий.
       parameters:
-      - name: "date_from"
-        description: Вернуть вакансии начиная от указанной даты.
-        in: query
-        schema:
-          type: string
-          format: date
-      - name: "date_to"
-        description: Вернуть вакансии начиная до указанной даты.
-        in: query
-        schema:
-          type: string
-          format: date
-      - name: "query"
-        description: Поиск по фразе.
+      - name: "modified_at"
+        description: Вернуть вакансии обновленные указанной датой.
         in: query
         schema:
           type: string
@@ -141,3 +131,50 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublishedVacancy'
+  /search/vacancies:
+    get:
+      tags:
+      - 'Search'
+      description: Поиск вакансий.
+      parameters:
+      - name: "date_from"
+        description: Вернуть вакансии начиная от указанной даты.
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: "date_to"
+        description: Вернуть вакансии начиная до указанной даты.
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: "query"
+        description: Поиск по фразе.
+        in: query
+        schema:
+          type: string
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        required: false
+        description: Количесто вакансий, которые нужно пропустить для начала выборки.
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        required: false
+        description: Количество возвращаемых вакансий.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublishedVacancyList'

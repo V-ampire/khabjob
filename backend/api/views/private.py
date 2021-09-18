@@ -16,7 +16,6 @@ from api.validation.vacancies import (
     PrivatePostVacancy,
     PrivatePutVacancy,
     PrivatePatchVacancy,
-    SearchOptions,
     PrivateFilterOptions,
 )
 
@@ -40,26 +39,11 @@ class Vacancies(
         else:
             return PrivatePatchVacancy
     
-    search_options = [
-        'date_from',
-        'date_to',
-        'search_query',
-    ]
-
-    async def filter_by(self, **options):
+    async def list(self, **options):
         if options:
             options = validation_utils.validate_request_query(
                 PrivateFilterOptions,
                 options,
                 exclude_unset=True
             )
-        return await super().filter_by(**options)
-    
-    async def search(self, **options):
-        validated_options = validation_utils.validate_request_query(
-            SearchOptions,
-            options,
-            exclude_unset=True
-        )
-        validated_options.update({'published_only': False})
-        return await super().search(**validated_options)
+        return await super().list(**options)

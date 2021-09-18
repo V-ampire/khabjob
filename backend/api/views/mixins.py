@@ -43,8 +43,6 @@ class ListMixin:
     """
     pagination_limit = 20
 
-    search_options = []
-
     @property
     def offset(self) -> int:
         """Return offset option."""
@@ -59,19 +57,8 @@ class ListMixin:
 
     async def get_list(self, *args, **kwargs):
         """Handler for method GET for list of items."""
-        passed_search_options = self.request.query.keys() & set(self.search_options)
-        if len(passed_search_options) > 0:
-            search_query = {
-                opt: self.request.query[opt] for opt in passed_search_options
-            }
-            results = await self.search(**search_query)
+        results = await self.list(**self.request.query)
         
-        elif self.request.query:
-            results = await self.filter_by(**self.request.query)
-        
-        else:
-            results = await self.filter_by()
-
         count = results[0].get('count', 0) if len(results) > 0 else 0
 
         # If handler returned results with count then use pagination

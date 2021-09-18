@@ -10,10 +10,10 @@ from api.views.mixins import (
 from api.validation import utils as validation_utils
 from api.validation.vacancies import (
     PublicVacancy,
-    SearchOptions,
     PublicFilterOptions,
 )
 
+from aiohttp import web
 from config import SELF_SOURCE_NAME
 
 
@@ -27,13 +27,7 @@ class Vacancies(
 
     validator_class = PublicVacancy
     
-    search_options = [
-        'date_from',
-        'date_to',
-        'search_query',
-    ]
-
-    async def filter_by(self, **options):
+    async def list(self, **options):
         if options:
             options = validation_utils.validate_request_query(
                 PublicFilterOptions,
@@ -41,15 +35,7 @@ class Vacancies(
                 exclude_unset=True
             )
         options.update({'is_published': True})
-        return await super().filter_by(**options)
-
-    async def search(self, **options):
-        validated_options = validation_utils.validate_request_query(
-            SearchOptions,
-            options,
-            exclude_unset=True
-        )
-        return await super().search(**validated_options)
+        return await super().list(**options)
 
     async def detail(self, vacancy_id):
         return await super().detail(vacancy_id, is_published=True)
