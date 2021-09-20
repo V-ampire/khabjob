@@ -10,7 +10,6 @@ faker = "*"
 pytest-mock = "*"
 freezegun = "*"
 flake8 = "*"
-aiohttp-middlewares = "*"
 
 [packages]
 aiohttp = {extras = ["speedups"],version = "*"}
@@ -24,6 +23,7 @@ click = "*"
 pydantic = "*"
 pytz = "*"
 pyjwt = "*"
+aiohttp-cors = "*"
 
 [requires]
 python_version = "3.8"

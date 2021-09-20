@@ -1,9 +1,12 @@
 from aiohttp import web
 
+from aiohttp_cors import CorsViewMixin
+
 from aiopg.sa.result import RowProxy
 
 from psycopg2.errors import UniqueViolation
 
+import logging
 import json
 from typing import List, Mapping
 
@@ -13,7 +16,10 @@ from core.services import vacancies
 from core.db.utils import parse_unique_violation_fields
 
 
-class BaseView(web.View):
+logger = logging.getLogger(__name__)
+
+
+class BaseView(CorsViewMixin, web.View):
     """
     Base class for rest api views.
     
@@ -99,7 +105,17 @@ class BaseVacancyView(DbViewMixin, BaseView):
             try:
                 created_vacancy = await vacancies.create_vacancy(conn, **vacancy_data)
             except UniqueViolation as error:
-                error_data = parse_unique_violation_fields(error)
+                nonunique_fields = parse_unique_violation_fields(error)
+                error_data = {}
+                for field in nonunique_fields.keys():
+                    error_data[field] = 'Вакансия со значением {0} уже существует.'.format(
+                        nonunique_fields[field]
+                    )
+                logger.error(
+                    'Attempt to create vacancy with non-unique fields: {0}'.format(
+                        nonunique_fields
+                    )
+                )
                 raise web.HTTPBadRequest(
                     text=json.dumps(error_data),
                     content_type='application/json',

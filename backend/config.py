@@ -53,11 +53,6 @@ POSTGRES_CONFIG = {
 }
 
 
-API_CONFIG = {
-    'API_ROOT': env.str('API_ROOT'),
-}
-
-
 TIMEZONE = 'Asia/Vladivostok'
 
 
@@ -68,4 +63,9 @@ AUTH_CONFIG = {
     'JWT_HEADER_NAME': 'Authorization',
     'JWT_LIFETIME': timedelta(days=30),
     'PASSWORD_PATTERN': r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$'
+}
+
+
+CORS_CONFIG = {
+    'CORS_ALLOWED_ORIGINS': env.list('CORS_ALLOWED_ORIGINS')
 }

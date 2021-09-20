@@ -1,7 +1,6 @@
 from aiohttp import web, PAYLOAD_REGISTRY
 
-from aiohttp_middlewares import cors_middleware
-from aiohttp_middlewares.cors import DEFAULT_ALLOW_HEADERS
+import aiohttp_cors
 
 from aiopg.sa import create_engine
 
@@ -15,7 +14,7 @@ from types import MappingProxyType
 
 from core.db.utils import get_postgres_dsn
 
-from config import DEBUG
+from config import CORS_CONFIG
 
 
 async def setup_db(app: web.Application):
@@ -30,18 +29,35 @@ async def setup_db(app: web.Application):
         app['db'].close()
         await app['db'].wait_closed()
 
+    
+def setup_cors(app: web.Application):
+    """Set up CORS policy."""
+    defaults = {
+        origin: aiohttp_cors.ResourceOptions(
+            allow_credentials=True,
+            expose_headers="*",
+            allow_headers="*",
+        ) for origin in CORS_CONFIG['CORS_ALLOWED_ORIGINS']
+    }
+    
+    cors = aiohttp_cors.setup(app, defaults=defaults)
+
+    for route in list(app.router.routes()):
+        cors.add(route)
+
+
+
 
 def init_app(config: Optional[Dict]=None) -> web.Application:
     """Initialize apllication."""
     middlewares = [
         jwt_auth_middleware,
     ]
-    if DEBUG:
-        middlewares.append(cors_middleware(allow_all=True))
-    
+
     app = web.Application(middlewares=middlewares)
 
     setup_routes(app)
+    setup_cors(app)
 
     app.cleanup_ctx.append(setup_db)
 

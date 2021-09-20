@@ -6,6 +6,9 @@ from aiohttp import web
 
 from aiopg.sa import Engine
 
+
+from pydantic import ValidationError
+
 from api.validation import utils as validation_utils
 from api.utils import get_pagination_params, get_request_payload
 

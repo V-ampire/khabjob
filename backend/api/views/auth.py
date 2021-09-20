@@ -1,5 +1,7 @@
 from aiohttp import web
 
+from aiohttp_cors import CorsViewMixin
+
 from api.validation.utils import validate_request_data
 from api.validation.auth import UserCredentials, ResetPasswordData
 from api.views.mixins import DbViewMixin, AuthenticatedRequiredMixin
@@ -9,7 +11,7 @@ from api.utils import get_request_payload
 from core.services.auth import blacklist_token, update_user
 
 
-class LoginView(DbViewMixin, web.View):
+class LoginView(CorsViewMixin, DbViewMixin, web.View):
     """View to obtain jwt token for user."""
 
     async def post(self):
@@ -31,7 +33,7 @@ class LoginView(DbViewMixin, web.View):
         return web.Response(body={'user': user.username, 'jwt_token': token})
 
 
-class LogoutView(AuthenticatedRequiredMixin, DbViewMixin, web.View):
+class LogoutView(CorsViewMixin, AuthenticatedRequiredMixin, DbViewMixin, web.View):
     """View to logout user via add jwt token to blacklist."""
 
     async def get(self):
@@ -44,7 +46,7 @@ class LogoutView(AuthenticatedRequiredMixin, DbViewMixin, web.View):
         return web.Response(body={'status': 'logout'})
 
 
-class ResetPasswordView(DbViewMixin, web.View):
+class ResetPasswordView(CorsViewMixin, DbViewMixin, web.View):
     """View to reset password."""
     
     async def post(self):
