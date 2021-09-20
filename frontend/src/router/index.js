@@ -2,6 +2,8 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 
 import VacancyList from '@/views/public/VacancyList.vue'
+import VacancyDetail from '@/views/public/VacancyDetail.vue'
+import VacancySearch from '@/views/public/VacancySearch.vue'
 
 import config from '@/config'
 
@@ -16,7 +18,12 @@ const routes = [
   {
     path: '/vacancies/:vacancyId',
     name: 'PublicVacancyDetail',
-    component: VacancyList
+    component: VacancyDetail
+  },
+  {
+    path: '/search',
+    name: 'PublicVacancySearch',
+    component: VacancySearch
   },
 ]
 

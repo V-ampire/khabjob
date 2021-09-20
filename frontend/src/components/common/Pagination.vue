@@ -26,7 +26,6 @@ export default {
   },
   methods: {
     pageChange(event, page) {
-      console.log(page)
       this.currentPage = page
       this.$emit(ON_PAGINATE, page)
     }

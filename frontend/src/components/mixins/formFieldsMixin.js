@@ -56,12 +56,6 @@ export default {
             }  
           }
         },
-        validate () {
-          return this.$refs.form.validate();
-        },
-        reset () {
-          return this.$refs.form.reset();
-        },
         cleanFields(formFields) {
           /**
            * Переопределив этот метод можно изменить, либо проверить поля перед тем,

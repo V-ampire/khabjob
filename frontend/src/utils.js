@@ -12,3 +12,8 @@ export function convertToISODateString(date) {
 
   return `${year}-${fullMonth}-${fullDay}`
 }
+
+export function getTodayDate() {
+  const today = new Date()
+  return today.toISOString().split("T")[0]
+}

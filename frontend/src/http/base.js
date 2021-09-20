@@ -170,3 +170,32 @@ export class AuthorizationClient {
     return response
   }
 }
+
+
+export class SearchClient {
+  constructor(endpoint, accessToken=null) {
+    /**
+     * @endpoint - ресурс объекта
+     * @accessToken - токен авторизации
+     */
+    this.endpoint = endpoint;
+    this.accessToken = accessToken;
+  }
+
+  async search(params={}) {
+    /**
+     * Загрузить список объектов.
+     */
+    let response
+    let headers = {}
+    if (this.accessToken) {
+      headers['Authorization'] = `Bearer ${this.accessToken}`
+    }
+    try {
+      response = await http.get(`${this.endpoint}`, {headers: headers, params: params})
+    } catch (err) {
+      throw getHttpErrorType(err)
+    }
+    return response
+  }
+}

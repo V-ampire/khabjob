@@ -1,12 +1,13 @@
 <template>
   <b-modal :title="title" ref="modal" hide-footer>
-    <b-form ref="form">
+    <b-form ref="form" v-on:submit.prevent="search">
       <div class="searchBar-dates mb-2">
         <h5>Поиск по датам:</h5>
         <div class="searchBar-dates-inputs">
           <div class="searchBar-dates-dateFrom mb-2">
             <b-form-datepicker
-              v-model="dateFrom"
+              v-model="date_from"
+              label-no-date-selected="Опубликованные после"
               button-variant="dateBtn"
               right
               value-as-date
@@ -18,7 +19,8 @@
           </div>
           <div class="searchBar-dates-dateTo">
             <b-form-datepicker
-              v-model="dateTo"
+              v-model="date_to"
+              label-no-date-selected="Опубликованные до"
               button-variant="dateBtn"
               right
               value-as-date
@@ -35,7 +37,7 @@
         <div class="searchbar-query-input">
           <b-form-input
             class="py-0"
-            v-model="searchQuery" 
+            v-model="search_query" 
             placeholder="Фраза для поиска..."
             trim
           ></b-form-input>
@@ -53,10 +55,10 @@
 </template>
 
 <script>
-import { mapMutations } from 'vuex';
 import { convertToISODateString } from '@/utils.js'
-import { ON_SEARCH_VACANCIES } from '@/events/types'
-import eventBus from '@/events/eventBus'
+import { mapMutations } from 'vuex';
+import { ON_SEARCH } from '@/events/types.js'
+import eventBus from '@/events/eventBus.js'
 
 export default {
   props: {
@@ -67,27 +69,31 @@ export default {
   },
   data() {
     return {
-      dateFrom: null,
-      dateTo: null,
-      searchQuery: ''
+      date_from: null,
+      date_to: null,
+      search_query: null
     }
   },
   methods: {
     ...mapMutations('vacancies', [
-      'SET_SEARCH_OPTS',
+      'SET_SEARCH_PARAMS',
     ]),
     open() {
       this.$refs.modal.show()
     },
     search() {
-      // Мутировать store.searchOptions
-      this.SET_SEARCH_OPTS({
-        date_from: (this.dateFrom) ? convertToISODateString(this.dateFrom) : null,
-        date_to: (this.dateTo) ? convertToISODateString(this.dateTo) : null,
-        search_query: (this.searchQuery) ? this.searchQuery : null
+      this.SET_SEARCH_PARAMS({
+        date_from: (this.date_from) ? convertToISODateString(this.date_from) : null,
+        date_to: (this.date_to) ? convertToISODateString(this.date_to) : null,
+        search_query: this.search_query
       })
-      // Вызвать событие поиска вакансий
-      eventBus.$emit(ON_SEARCH_VACANCIES)
+      this.$router.push({ name: 'PublicVacancySearch' }).catch((error => {
+        if (error.name !== 'NavigationDuplicated') {
+          throw error
+        }
+        // We are already on search page
+        eventBus.$emit(ON_SEARCH)
+      }))
       this.$refs.modal.hide()
     }
   },

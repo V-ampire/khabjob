@@ -3,21 +3,39 @@
     <div class="vacancies">
       <b-container fluid class="justify-content-between">
         <b-row>
-          <b-col class="mb-3" cols="12">
-            <VacanciesSearch />
+          <b-col class="mb-2" cols="12">
+            <div class="vacancies-search d-flex flex-column flex-sm-row">
+              <b-form ref="form">
+                <div class="vacancyDate-field mb-2">
+                  <span class="mr-2">
+                    Вакансии на <strong class="current-date-text">{{ currentDateStr }} г.</strong>
+                  </span>
+                  <span class="vacancyDate-field-value">
+                    <b-form-datepicker
+                      v-model="vacanciesDate"
+                      button-only
+                      button-variant="dateBtn"
+                      right
+                      value-as-date
+                    >
+                      <template v-slot:button-content>
+                        <font-awesome-icon :icon="['far', 'calendar-alt']" />
+                      </template>
+                    </b-form-datepicker>
+                  </span>
+                </div>
+              </b-form>
+            </div>
+          </b-col>
+        </b-row>
+        <b-row>
+          <b-col cols="12">
+            Найдено вакансий: {{ totalCount }}
           </b-col>
         </b-row>
         <b-row class="mb-3">
           <b-col cols="12">
-            <div class="errors" v-if="errorState">{{ errorMessage }}</div>
-            <div class="loading d-flex justify-content-center" v-else-if="loadingState">
-              <b-spinner class="spinner" variant="primary" type="grow" label="Loading..."></b-spinner>
-            </div>
-            <b-list-group flush v-else>
-              <b-list-group-item v-for="vacancy in vacancyList" :key="vacancy.id">
-                <VacancyItem :vacancyData="vacancy"/>
-              </b-list-group-item>
-            </b-list-group>
+            <VacancyItems :vacancyList="vacancyList" />
           </b-col>
         </b-row>
       </b-container>
@@ -26,34 +44,28 @@
       <Pagination
         :count="totalCount"
         :perPage="limit"
-        v-on:onPaginate="paginate"
+        v-on:onPaginate="fetch"
       />
     </div>
   </div>
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex';
-import { mapMutations, mapActions } from 'vuex';
-import VacancyItem from '@/components/vacancies/VacancyItem.vue'
-import VacanciesSearch from '@/components/vacancies/VacanciesSearch.vue'
+import { mapState, mapActions } from 'vuex';
+import VacancyItems from '@/components/vacancies/VacancyItems.vue'
 import Pagination from '@/components/common/Pagination.vue'
-import { ON_SEARCH_VACANCIES } from '@/events/types'
-import eventBus from '@/events/eventBus'
+import { convertToISODateString } from '@/utils.js'
 
 export default {
   components: {
-    VacancyItem,
+    VacancyItems,
     Pagination,
-    VacanciesSearch
   },
   data() {
     return {
-      loadingState: true,
-      errorState: false,
-      errorMessage: '',
       limit: 40,
       offset: 0,
+      vacanciesDate: new Date(),
     }
   },
   computed: {
@@ -61,71 +73,34 @@ export default {
       'totalCount',
       'vacancyList',
     ]),
-    ...mapGetters('vacancies', [
-      'isPaginated',
-    ]),
     isPaginated() {
       return !!this.totalCount && this.totalCount > this.limit
+    },
+    currentDateStr() {
+      return this.vacanciesDate.toLocaleDateString()
+    },
+  },
+  watch: {
+    vacanciesDate: async function() {
+      await this.fetch()
     }
   },
   async mounted() {
-    eventBus.$on(ON_SEARCH_VACANCIES, this.searchVacancies)
-    const initialSearchOpts = {
-      date_from: this.getTodayDate(),
-      date_to: this.getTodayDate(),
-      search_query: null
-    }
-    this.SET_SEARCH_OPTS(initialSearchOpts)
-    await this.searchVacancies()
+    await this.fetch()
   },
   methods: {
     ...mapActions('vacancies', [
-      'SEARCH_VACANCIES'
+      'GET_VACANCIES',
     ]),
-    ...mapMutations('vacancies', [
-      'SET_SEARCH_OPTS',
-      'SET_PAGINATION',
-    ]),
-    getTodayDate() {
-      const today = new Date()
-      return today.toISOString().split("T")[0]
-    },
-    showErrorMessage(message) {
-      this.errorState = true
-      this.errorMessage = message
-    },
-    async searchVacancies() {
-      this.loadingState = true
-      const params = {
+    async fetch(page=1) {
+      this.offset = this.limit * (page - 1)
+      await this.GET_VACANCIES({
+        modified_at: convertToISODateString(this.vacanciesDate),
         limit: this.limit,
         offset: this.offset
-      }
-      try {
-        await this.SEARCH_VACANCIES(params);
-      } catch (err) {
-        const message = 'Не удалось загрузить список вакансий. ' +
-                        'Проверьте соединение с интернетом или повторите попытку позже...'
-        this.showErrorMessage(message)
-        throw err
-      } finally {
-        this.loadingState = false
-        console.log(this.totalCount)
-      }
-    },
-    async paginate(page) {
-      this.offset = this.limit * (page - 1)
-      await this.searchVacancies()
+      })
+      window.scrollTo(0,0);
     }
   }
 }
 </script>
-
-<style>
-  .loading {
-    margin-top: 20vh;
-  }
-  .spinner {
-    width: 10vh;
-    height: 10vh;
-  }
-</style>

@@ -1,6 +1,8 @@
-import { publicVacanciesApi } from '@/http/clients'
+import { publicVacanciesApi, searchVacanciesApi } from '@/http/clients'
+import { ResponseFormatError } from '@/http/errors'
 
 const api = publicVacanciesApi()
+const searchApi = searchVacanciesApi()
 
 export default {
   namespaced: true,
@@ -8,7 +10,7 @@ export default {
     vacancyList: [],
     vacancy: null,
     totalCount: null,
-    searchOptions: {
+    searchParams: {
       date_from: null,
       date_to: null,
       search_query: null
@@ -16,28 +18,55 @@ export default {
   }),
 
   mutations: {
-    SET_SEARCH_OPTS(state, options) {
-      Object.assign(state.searchOptions, options)
-    },
     SET_VACANCIES(state, vacancies) {
       state.vacancyList = vacancies
     },
     SET_TOTAL_COUNT(state, count) {
       state.totalCount = count
     },
+    SET_VACANCY(state, vacancyData) {
+      state.vacancy = vacancyData
+    },
+    SET_SEARCH_PARAMS(state, params) {
+      Object.assign(state.searchParams, params)
+    }
   },
   
   actions: {
-    async SEARCH_VACANCIES({ commit, state }, params) {
-      let requestParams = {...state.searchOptions, ...params};
-      
-      let response = await api.list(requestParams)
-      
-      commit('SET_VACANCIES', response.data.results);
-      commit('SET_TOTAL_COUNT', response.data.count);
+    async GET_VACANCIES({ commit }, params) {
+      /**
+       * Load vacancyList using API search.
+       */
+      let response = await api.list(params)
+      if (response.data.results) {
+        commit('SET_VACANCIES', response.data.results)
+        commit('SET_TOTAL_COUNT', response.data.count)
+      }
+      else {
+        throw ResponseFormatError()
+      }
     },
-    // async FILTER_VACANCIES({ commit }) {
+    async GET_VACANCY({ commit }, vacancyId) {
+      /**
+       * Load vacancy info using detail endpoint
+       */
+      const response = await api.detail(vacancyId)
 
-    // }
+      commit('SET_VACANCY', response.data);
+    },
+    async SEARCH_VACANCIES({ state, commit }, params=null) {
+      const requestParams = state.searchParams
+      if (params) {
+        Object.assign(requestParams, params)
+      }
+      const response = await searchApi.search(requestParams)
+      if (response.data.results) {
+        commit('SET_VACANCIES', response.data.results)
+        commit('SET_TOTAL_COUNT', response.data.count)
+      }
+      else {
+        throw ResponseFormatError()
+      }
+    },
   }
 }
