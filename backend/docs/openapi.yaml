@@ -51,6 +51,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PublishedVacancy'
+    UserCredentials:
+      description: Учетные данные пользователя
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
 tags:
 - name: 'Public'
   description: Публичный API
@@ -178,3 +186,57 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublishedVacancyList'
+  /auth/login:
+    post:
+      tags:
+      - 'Auth'
+      description: Вход в систему администрирования
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCredentials'
+      responses:
+        '200':
+          description: Успешный вход в систему
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jwt_token:
+                    type: string
+                  user:
+                    type: string
+        '403':
+          description: В доступе отказано.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reason:
+                    type: string
+                    example: 'Invalid user credentials.'
+  /auth/logout:
+    get:
+      tags:
+      - 'Auth'
+      description: Выход из системы путем ивалидации JWT токена.
+      responses:
+        '200':
+          description: JWT Токен инвалидирован.
+        '403':
+          description: В доступе отказано.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reason:
+                    type: string
+                    example: 'Invalid token.'
+    
+            
+                
+      

@@ -35,8 +35,9 @@ def setup_cors(app: web.Application):
     defaults = {
         origin: aiohttp_cors.ResourceOptions(
             allow_credentials=True,
-            expose_headers="*",
-            allow_headers="*",
+            expose_headers='*',
+            allow_methods='*',
+            allow_headers='*',
         ) for origin in CORS_CONFIG['CORS_ALLOWED_ORIGINS']
     }
     
@@ -44,8 +45,6 @@ def setup_cors(app: web.Application):
 
     for route in list(app.router.routes()):
         cors.add(route)
-
-
 
 
 def init_app(config: Optional[Dict]=None) -> web.Application:

@@ -35,6 +35,8 @@ class LoginView(CorsViewMixin, DbViewMixin, web.View):
 
 class LogoutView(CorsViewMixin, AuthenticatedRequiredMixin, DbViewMixin, web.View):
     """View to logout user via add jwt token to blacklist."""
+    
+    SAFE_METHODS = ('OPTIONS',)
 
     async def get(self):
         """Blacklist jwt token."""

@@ -26,10 +26,23 @@ class DbViewMixin:
 
 
 class AuthenticatedRequiredMixin:
-    """Mixin limits access only for authenticated requests."""
+    """
+    Mixin limits access only for authenticated requests.
+    
+    :attr SAFE_METHODS: Requests via these methods will process without authentication check,
+    for example OPTIONS for CORS preflight cases. WARNING: Could be potentially security issue.
+    https://stackoverflow.com/questions/20805058/options-request-authentication
+    https://github.com/aio-libs/aiohttp-cors/issues/193
+    """
+
+    SAFE_METHODS = tuple()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        if self.request.method in self.SAFE_METHODS:
+            return
+        
         if self.request.get('user', None) is None:
             raise web.HTTPForbidden(
                 text=json.dumps({'reason': 'Access authenticated only.'}),
