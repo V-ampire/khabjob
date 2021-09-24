@@ -20,15 +20,8 @@
 import { mapState, mapActions } from 'vuex'
 
 export default {
-  data() {
-    return {
-      loadingState: true,
-      errorState: false,
-      errorMessage: '',
-    }
-  },
   async mounted() {
-    await this.GET_VACANCY(this.vacancyId)
+    await this.GET_VACANCY({ vacancyId: this.vacancyId })
   },
   computed: {
     vacancyId() {

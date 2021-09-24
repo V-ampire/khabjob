@@ -15,6 +15,13 @@ export function publicVacanciesApi(accessToken=null) {
 }
 
 
+export function privateVacanciesApi(accessToken) {
+  const endpoint = '/private/vacancies'
+
+  return new ApiClient(endpoint, accessToken)
+}
+
+
 export function searchVacanciesApi(accessToken=null) {
   const endpoint = '/search/vacancies'
   

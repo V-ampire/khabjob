@@ -43,6 +43,15 @@
           ></b-form-input>
         </div>
       </div>
+      <div class="searchBar-status mb-3" v-if="isAuthenticated">
+        <b-form-checkbox
+          id="checkbox-1"
+          v-model="published_only"
+          name="checkbox-1"
+        >
+          Показывать только опубликованные вакансии
+        </b-form-checkbox>
+      </div>
       <div class="searchBar-btn">
         <b-button 
           variant="primary" 
@@ -56,9 +65,7 @@
 
 <script>
 import { convertToISODateString } from '@/utils.js'
-import { mapMutations } from 'vuex';
-import { ON_SEARCH } from '@/events/types.js'
-import eventBus from '@/events/eventBus.js'
+import { mapMutations, mapGetters, mapActions } from 'vuex';
 
 export default {
   props: {
@@ -71,12 +78,22 @@ export default {
     return {
       date_from: null,
       date_to: null,
-      search_query: null
+      search_query: null,
+      published_only: true,
+      limit: 20,
     }
+  },
+  computed: {
+    ...mapGetters('auth', [
+      'isAuthenticated'
+    ]),
   },
   methods: {
     ...mapMutations('vacancies', [
       'SET_SEARCH_PARAMS',
+    ]),
+    ...mapActions('vacancies', [
+      'SEARCH_VACANCIES',
     ]),
     open() {
       this.$refs.modal.show()
@@ -85,16 +102,20 @@ export default {
       this.SET_SEARCH_PARAMS({
         date_from: (this.date_from) ? convertToISODateString(this.date_from) : null,
         date_to: (this.date_to) ? convertToISODateString(this.date_to) : null,
-        search_query: this.search_query
+        search_query: this.search_query,
+        published_only: this.published_only,
       })
-      this.$router.push({ name: 'PublicVacancySearch' }).catch((error => {
+      // Go to search page
+      this.$router.push({ name: 'PublicVacancySearch' }).catch( async (error) => {
         if (error.name !== 'NavigationDuplicated') {
           throw error
         }
         // We are already on search page
-        eventBus.$emit(ON_SEARCH)
-      }))
-      this.$refs.modal.hide()
+        await this.SEARCH_VACANCIES({
+          limit: this.limit
+        })
+      })
+    this.$refs.modal.hide()
     }
   },
 }

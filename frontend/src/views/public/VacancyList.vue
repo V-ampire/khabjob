@@ -30,7 +30,7 @@
         </b-row>
         <b-row>
           <b-col cols="12">
-            Найдено вакансий: {{ totalCount }}
+            Найдено вакансий: {{ count }}
           </b-col>
         </b-row>
         <b-row class="mb-3">
@@ -42,7 +42,7 @@
     </div>
     <div class="pagination mx-auto" v-if="isPaginated">
       <Pagination
-        :count="totalCount"
+        :count="count"
         :perPage="limit"
         v-on:onPaginate="fetch"
       />
@@ -70,11 +70,11 @@ export default {
   },
   computed: {
     ...mapState('vacancies', [
-      'totalCount',
+      'count',
       'vacancyList',
     ]),
     isPaginated() {
-      return !!this.totalCount && this.totalCount > this.limit
+      return !!this.count && this.count > this.limit
     },
     currentDateStr() {
       return this.vacanciesDate.toLocaleDateString()
@@ -95,11 +95,13 @@ export default {
     async fetch(page=1) {
       this.offset = this.limit * (page - 1)
       await this.GET_VACANCIES({
-        modified_at: convertToISODateString(this.vacanciesDate),
-        limit: this.limit,
-        offset: this.offset
+        params: {
+          modified_at: convertToISODateString(this.vacanciesDate),
+          limit: this.limit,
+          offset: this.offset
+        }
       })
-      window.scrollTo(0,0);
+      window.scrollTo(0,0)
     }
   }
 }

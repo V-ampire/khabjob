@@ -112,6 +112,23 @@ export class ApiClient {
     }
     return response
   }
+
+  async delete_batch(params={}) {
+    /**
+     * Удалить объект.
+     */
+    let response
+    let headers = {}
+    if (this.accessToken) {
+      headers['Authorization'] = `Bearer ${this.accessToken}`
+    }
+    try {
+      response = await http.delete(`${this.endpoint}`, {headers: headers, params: params})
+    } catch (err) {
+      throw getHttpErrorType(err)
+    }
+    return response
+  }
 }
 
 

@@ -28,7 +28,7 @@
         </b-row>
         <b-row v-if="vacancyList.length">
           <b-col cols="12">
-            Найдено вакансий: {{ totalCount }}
+            Найдено вакансий: {{ count }}
           </b-col>
         </b-row>
         <b-row class="mb-3">
@@ -40,7 +40,7 @@
     </div>
     <div class="pagination mx-auto" v-if="isPaginated">
       <Pagination
-        :count="totalCount"
+        :count="count"
         :perPage="limit"
         v-on:onPaginate="fetch"
       />
@@ -52,8 +52,6 @@
 import { mapState, mapActions } from 'vuex';
 import VacancyItems from '@/components/vacancies/VacancyItems.vue'
 import Pagination from '@/components/common/Pagination.vue'
-import { ON_SEARCH } from '@/events/types.js'
-import eventBus from '@/events/eventBus.js'
 
 export default {
   components: {
@@ -68,12 +66,12 @@ export default {
   },
   computed: {
     ...mapState('vacancies', [
-      'totalCount',
+      'count',
       'vacancyList',
       'searchParams',
     ]),
     isPaginated() {
-      return !!this.totalCount && this.totalCount > this.limit
+      return !!this.count && this.count > this.limit
     },
     dateFromLocal() {
       return new Date(this.searchParams.date_from).toLocaleDateString()
@@ -83,7 +81,6 @@ export default {
     }
   },
   async mounted() {
-    eventBus.$on(ON_SEARCH, this.fetch)
     await this.fetch()
   },
   methods: {

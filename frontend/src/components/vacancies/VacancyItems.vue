@@ -40,3 +40,9 @@ export default {
   }
 }
 </script>
+
+<style>
+  .vacancy-name {
+    text-decoration: underline;
+  }
+</style>

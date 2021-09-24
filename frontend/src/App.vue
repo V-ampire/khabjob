@@ -3,20 +3,46 @@
     <div class="searchBar">
       <VacanciesSearchBar ref="searchBar" />
     </div>
+    <div class="alerts">
+      <ErrorAlert />
+      <SuccessAlert />
+      <ConfirmDialog />
+    </div>
     <div class="flex-wrapper">
       <div class="wrapper d-flex flex-column">
         <header class="header mb-2" id="header">
           <nav class="navbar justify-content-between m-auto">
-            <a class="navbar-brand" href="#">
-              <img class="navbar-brand-logo" src="@/assets/img/khabjob_logo.png" alt="khabjob">
-            </a>
-            <div class="navbar-search">
-              <a 
-                class="navbar-search search-toggler mr-2 mr-md-4"
-                v-on:click="openSearchBar"
-              >
-                <font-awesome-icon icon="search" />
-              </a>
+            
+            <span class="navbar-brand">
+              <router-link to="/">
+                <img class="navbar-brand-logo" src="@/assets/img/khabjob_logo.png" alt="khabjob">
+              </router-link>
+            </span>
+            <div class="navbar-controls d-flex mr-1">
+              <div class="navbar-search mr-2">
+                <a 
+                  class="navbar-search-toggler mr-2 mr-md-4"
+                  v-on:click="openSearchBar"
+                >
+                  <font-awesome-icon size="lg" icon="search" />
+                </a>
+              </div>
+              <div class="navbar-user" v-if="isAuthenticated">
+                <a class="navbar-user-toggler" id="userToggler" @click="!show">
+                  <font-awesome-icon size="lg" icon="user-circle" />
+                </a>
+                <b-popover :show.sync="showUserMenu" variant="primary" target="userToggler">
+                  <template #title>{{ user }}</template>
+                  <b-list-group>
+                    <b-list-group-item>
+                      <router-link :to="{name: 'Dashboard'}">Админка</router-link>
+                    </b-list-group-item>
+                    <b-list-group-item>
+                      <a @click="logout">Выйти</a>
+                    </b-list-group-item>
+                  </b-list-group>
+                </b-popover>
+              </div>
             </div>
           </nav>
         </header>
@@ -58,16 +84,52 @@
 <script>
 import VacanciesSearchBar from '@/components/vacancies/VacanciesSearchBar.vue'
 import VacancySuggestForm from '@/components/vacancies/VacancySuggestForm.vue'
+import ErrorAlert from '@/components/common/ErrorAlert.vue'
+import SuccessAlert from '@/components/common/SuccessAlert.vue'
+import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
+import { mapState, mapGetters, mapActions } from 'vuex';
+import { showErrorAlert } from '@/events/utils.js'
 
 export default {
   components: {
     VacanciesSearchBar,
-    VacancySuggestForm
+    VacancySuggestForm,
+    ErrorAlert,
+    SuccessAlert,
+    ConfirmDialog,
+  },
+  data() {
+    return {
+      showUserMenu: false
+    }
+  },
+  computed: {
+    ...mapState('auth', [
+      'user'
+    ]),
+    ...mapGetters('auth', [
+      'isAuthenticated'
+    ])
   },
   methods: {
+    ...mapActions('auth', [
+      'LOGOUT',
+    ]),
     openSearchBar() {
       this.$refs.searchBar.open()
     },
+    async logout() {
+      this.showUserMenu = false
+      try {
+        await this.LOGOUT()
+      } catch (error) {
+        showErrorAlert(
+          'Не удалось разлогинится! Возможно нет соединения с интернетом или недоступен севрер.'
+        )
+        throw error
+      }
+      this.$router.push({ name: 'Login' })
+    }
   },
 }
 </script>

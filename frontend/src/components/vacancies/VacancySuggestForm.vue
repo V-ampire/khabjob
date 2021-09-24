@@ -80,8 +80,10 @@
 <script>
 import { publicVacanciesApi } from '@/http/clients.js'
 import { ServerError } from '@/http/errors.js'
+import formMixin from '@/components/mixins/formMixin.js'
 
 export default {
+  mixins: [formMixin],
   data() {
     return {
       fields: {
@@ -134,21 +136,9 @@ export default {
       }
       return true
     },
-    resetFields() {
-      for (let field in this.fields) {
-        this.fields[field].value = null
-        this.fields[field].error = null
-      }
-    },
     async suggest() {
       if (this.validateFields()) {
-        const formData = new FormData()
-        for (let field in this.fields) {
-          if (this.fields[field].value) {
-            formData.append(field, this.fields[field].value)
-          }
-        }
-
+        const formData = this.getAsFormData()
         try {
           await publicVacanciesApi().create(formData)
           this.showConfirm = true
