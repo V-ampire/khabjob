@@ -204,7 +204,7 @@ async def test_create_vacancy_resource_already_exists(api_client, create_vacancy
     result = await resp.json()
 
     assert resp.status == 400
-    assert result == {'source': existed['source']}
+    assert result == {'source': 'Вакансия со значением {0} уже существует.'.format(existed['source'])}
 
 
 async def test_create_vacancy_resource_publihed(api_client):

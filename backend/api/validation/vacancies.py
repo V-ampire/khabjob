@@ -2,7 +2,6 @@ from pydantic import (
     BaseModel,
     validator,
     root_validator,
-    StrictBool, 
     HttpUrl
 )
 
@@ -19,8 +18,9 @@ class BaseVacancy(BaseModel):
 
     name: Optional[str]
     source: Optional[HttpUrl]
-    source_name: Optional[str]
+    source_name: Optional[str] = SELF_SOURCE_NAME
     description: Optional[str]
+    is_published: Optional[bool]
 
     @validator('source')
     def convert_source_to_str(cls, source_http):
@@ -38,9 +38,9 @@ class PublicVacancy(BaseVacancy):
     Fields should include name and source or description.
     Source name always the sitename.
     """
-
     name: str
     source_name: str = SELF_SOURCE_NAME
+    is_published: bool = False
 
     @root_validator
     def validate_source_or_description_required(cls, values):
@@ -58,9 +58,8 @@ class PrivatePostVacancy(BaseVacancy):
     
     Requires name and is_published fields.
     """
-    
     name: str
-    is_published: StrictBool
+    is_published: bool
    
 
 class PrivatePutVacancy(BaseVacancy):
@@ -69,12 +68,11 @@ class PrivatePutVacancy(BaseVacancy):
     
     For full update doesn't allow optional values.
     """
-    
     name: str
     source: HttpUrl
     source_name: str
     description: str
-    is_published: StrictBool
+    is_published: bool
 
 
 class PrivatePatchVacancy(BaseVacancy):
@@ -83,6 +81,7 @@ class PrivatePatchVacancy(BaseVacancy):
     
     All fields are optional.
     """
+    source_name: Optional[str]
 
 
 class SearchOptions(BaseModel):

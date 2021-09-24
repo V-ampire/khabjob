@@ -9,6 +9,7 @@ from psycopg2.errors import UniqueViolation
 import logging
 import json
 from typing import List, Mapping
+from multidict import MultiDictProxy
 
 from api.views.mixins import DbViewMixin
 
@@ -54,6 +55,10 @@ class BaseView(CorsViewMixin, web.View):
         """Implement handler to delete item."""
         raise NotImplementedError
 
+    async def destroy_batch(self, *args, **kwargs) -> None:
+        """Implement handler to delete items."""
+        raise NotImplementedError
+
     async def get(self, *args, **kwargs):
         """
         Return self.get_detail if self.lookup_field attribute in url,
@@ -62,6 +67,16 @@ class BaseView(CorsViewMixin, web.View):
         if self.lookup_field in self.request.match_info:
             return await self.get_detail(*args, **kwargs)
         return await self.get_list(*args, **kwargs)
+
+    async def delete(self, *args, **kwargs):
+        """
+        Return self.delete_one if self.lookup_field attribute in url,
+        else return self.delete_list.
+        """
+        if self.lookup_field in self.request.match_info:
+            return await self.delete_one(*args, **kwargs)
+        return await self.delete_list(*args, **kwargs)
+
 
 
 class BaseVacancyView(DbViewMixin, BaseView):
@@ -137,5 +152,21 @@ class BaseVacancyView(DbViewMixin, BaseView):
         async with self.db.acquire() as conn:
             result = await vacancies.delete_vacancy(
                 conn, vacancy_id,
+            )
+        return result
+
+    async def destroy_batch(self, options: MultiDictProxy) -> int:
+        """
+        Delete vacancies batch by vacancies ID.
+        
+        If IDs didnt pass return 0 (0 rows was deleted).
+        """
+        if not self.lookup_field in options:
+            return 0
+
+        vacancy_ids = options.getall(self.lookup_field)
+        async with self.db.acquire() as conn:
+            result = await vacancies.delete_vacancy_batch(
+                conn, vacancy_ids,
             )
         return result

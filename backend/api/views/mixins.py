@@ -30,19 +30,22 @@ class AuthenticatedRequiredMixin:
     Mixin limits access only for authenticated requests.
     
     :attr SAFE_METHODS: Requests via these methods will process without authentication check,
-    for example OPTIONS for CORS preflight cases. WARNING: Could be potentially security issue.
+    for example OPTIONS for CORS preflight cases.
+    #############################################
+    WARNING: Could be potentially security issue.
+    #############################################
     https://stackoverflow.com/questions/20805058/options-request-authentication
     https://github.com/aio-libs/aiohttp-cors/issues/193
     """
 
-    SAFE_METHODS = tuple()
+    SAFE_METHODS = ('OPTIONS',)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if self.request.method in self.SAFE_METHODS:
-            return
-        
+            return # FIXME Send empty response in middleware (?)
+            
         if self.request.get('user', None) is None:
             raise web.HTTPForbidden(
                 text=json.dumps({'reason': 'Access authenticated only.'}),
@@ -160,10 +163,19 @@ class UpdateMixin:
 class DeleteMixin:
     """Mixin implements delete method to remove item."""
     
-    async def delete(self, *args, **kwargs):
+    async def delete_one(self, *args, **kwargs):
         """Delete item."""
         if not self.lookup_field in self.request.match_info:
             raise web.HTTPNotFound()
         lookup = self.request.match_info[self.lookup_field]
         deleted_count = await self.destroy(lookup)
         return web.Response(body={'delete': deleted_count}, status=204)
+
+    async def delete_list(self, *args, **kwargs):
+        """
+        Delete items.
+        
+        Use request query params to filter deleted items.
+        """
+        deleted_count = await self.destroy_batch(self.request.query)
+        return web.Response(body={'delete': deleted_count}, status=200)

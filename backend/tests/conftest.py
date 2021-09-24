@@ -83,7 +83,7 @@ def fake_vacancies_data(faker):
 
 
 @pytest.fixture
-async def create_vacancy(loop, aio_engine, fake_vacancies_data):
+async def create_vacancy_return_data(loop, aio_engine, fake_vacancies_data):
     async def create(**options):
         vacancy_data = fake_vacancies_data(1, 1)[0]
         vacancy_data.update(**options)
@@ -91,6 +91,18 @@ async def create_vacancy(loop, aio_engine, fake_vacancies_data):
             stmt = insert(vacancies_table).values(**vacancy_data)
             await conn.execute(stmt)
         return vacancy_data
+    return create
+
+
+@pytest.fixture
+async def create_vacancy(loop, aio_engine, fake_vacancies_data):
+    async def create(**options):
+        vacancy_data = fake_vacancies_data(1, 1)[0]
+        vacancy_data.update(**options)
+        async with aio_engine.acquire() as conn:
+            stmt = insert(vacancies_table).values(**vacancy_data).returning(vacancies_table)
+            result = await conn.execute(stmt)
+            return await result.fetchone()
     return create
 
 

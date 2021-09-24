@@ -141,7 +141,7 @@ async def update_vacancy(
     return await result.fetchone()
 
 
-async def delete_vacancy(conn: SAConnection, vacancy_id: int) -> RowProxy:
+async def delete_vacancy(conn: SAConnection, vacancy_id: int) -> int:
     """
     Delete vacancy from database.
     
@@ -155,3 +155,15 @@ async def delete_vacancy(conn: SAConnection, vacancy_id: int) -> RowProxy:
     return result.rowcount
 
 
+async def delete_vacancy_batch(conn: SAConnection, vacancy_ids: List[int]) -> int:
+    """
+    Delete multiply vacancies.
+
+    :param vacancy_ids: List of vacancies ID to delete.
+
+    Return number of deleted rows.
+    """
+    stmt = delete(vacancies_table).where(vacancies_table.c.id.in_(vacancy_ids))
+
+    result = await conn.execute(stmt)
+    return result.rowcount

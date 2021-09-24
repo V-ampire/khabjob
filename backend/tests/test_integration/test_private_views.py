@@ -1,10 +1,13 @@
 import json
 import pytest
 
+from sqlalchemy import select
+
 from api.utils import get_pagination_params
 from api.payloads import dumps
 
 from core.services.vacancies import filter_vacancies, search_vacancies
+from core.db.schema import vacancies_table
 
 
 async def test_unauthorized_requests_private_views(api_client):
@@ -247,7 +250,7 @@ async def test_private_create_vacancy_resource_already_exists(api_client, create
     result = await resp.json()
 
     assert resp.status == 400
-    assert result == {'source': existed['source']}
+    assert result == {'source': 'Вакансия со значением {0} уже существует.'.format(existed['source'])}
 
 
 async def test_private_full_update_vacancy_resource_without_all_fields(api_client, create_vacancy, auth_headers):
@@ -352,3 +355,47 @@ async def test_private_delete_vacancy(api_client, create_vacancy, auth_headers, 
 
     assert resp.status == 204
     assert len(expected) == 0
+
+
+async def test_private_delete_vacancy_batch(api_client, create_vacancy, auth_headers, aio_engine):
+    user, headers = auth_headers
+
+    vacancies_to_delete = [await create_vacancy() for _ in range(3)]
+    vacancies_to_exist = [await create_vacancy() for _ in range(3)]
+
+    vacancies_ids = [str(vacancy.id) for vacancy in vacancies_to_delete]
+
+    url = api_client.app.router['vacancy_private_list'].url_for().with_query({'id': vacancies_ids})
+
+    resp = await api_client.delete(url, headers=headers)
+
+    async with aio_engine.acquire() as conn:
+        stmt = select(vacancies_table).where(vacancies_table.c.id.in_(vacancies_ids))
+        cursor = await conn.execute(stmt)
+        result = await cursor.fetchall()
+
+        stmt = select(vacancies_table)
+        cursor = await conn.execute(stmt)
+        exists = await cursor.fetchall()
+
+    assert resp.status == 204
+    assert len(result) == 0
+    assert sorted([v.id for v in exists]) == sorted([v.id for v in vacancies_to_exist])
+
+
+async def test_private_delete_vacancy_batch_with_id_not_exists(api_client, create_vacancy, auth_headers, aio_engine):
+    user, headers = auth_headers
+
+    vacancies_to_exist = [await create_vacancy() for _ in range(3)]
+
+    url = api_client.app.router['vacancy_private_list'].url_for().with_query({'id': 10})
+
+    resp = await api_client.delete(url, headers=headers)
+
+    async with aio_engine.acquire() as conn:
+        stmt = select(vacancies_table)
+        cursor = await conn.execute(stmt)
+        exists = await cursor.fetchall()
+
+    assert resp.status == 204
+    assert sorted([v.id for v in exists]) == sorted([v.id for v in vacancies_to_exist])

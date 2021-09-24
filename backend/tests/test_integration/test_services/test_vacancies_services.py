@@ -48,8 +48,8 @@ async def test_create_vacancy_batch(aio_engine, fake_vacancies_data):
             } in vacancies_data
 
 
-async def test_filter_vacancies_without_options_and_default_pagination(aio_engine, create_vacancy):
-    expected = sorted([await create_vacancy() for _ in range(3)], key=lambda v: v['source_name'])
+async def test_filter_vacancies_without_options_and_default_pagination(aio_engine, create_vacancy_return_data):
+    expected = sorted([await create_vacancy_return_data() for _ in range(3)], key=lambda v: v['source_name'])
     
     async with aio_engine.acquire() as conn:
         results = await vacancies.filter_vacancies(conn)
@@ -63,11 +63,11 @@ async def test_filter_vacancies_without_options_and_default_pagination(aio_engin
         assert not 'search_index' in r.keys()
     
 
-async def test_filter_vacancies_pagination(aio_engine, create_vacancy):
+async def test_filter_vacancies_pagination(aio_engine, create_vacancy_return_data):
     limit = 2
     offset = 5
     expected = sorted(
-        [await create_vacancy() for _ in range(offset*2)][6:8],
+        [await create_vacancy_return_data() for _ in range(offset*2)][6:8],
         key=lambda v: v['source_name']
     )
 
@@ -83,8 +83,8 @@ async def test_filter_vacancies_pagination(aio_engine, create_vacancy):
         assert not 'search_index' in r.keys()
 
     
-async def test_filter_vacancies_with_options(aio_engine, create_vacancy):
-    expected = [await create_vacancy() for _ in range(6)][0]
+async def test_filter_vacancies_with_options(aio_engine, create_vacancy_return_data):
+    expected = [await create_vacancy_return_data() for _ in range(6)][0]
 
     async with aio_engine.acquire() as conn:
         results = await vacancies.filter_vacancies(conn, source=expected['source'])
@@ -96,9 +96,9 @@ async def test_filter_vacancies_with_options(aio_engine, create_vacancy):
     assert not 'search_index' in results[0].keys()
 
 
-async def test_filter_vacancies_with_bool_option(aio_engine, create_vacancy):
-    await create_vacancy()
-    expected = await create_vacancy(is_published=False)
+async def test_filter_vacancies_with_bool_option(aio_engine, create_vacancy_return_data):
+    await create_vacancy_return_data()
+    expected = await create_vacancy_return_data(is_published=False)
 
     async with aio_engine.acquire() as conn:
         result = await vacancies.filter_vacancies(conn, is_published=False)
@@ -111,12 +111,12 @@ async def test_filter_vacancies_with_bool_option(aio_engine, create_vacancy):
     assert not 'search_index' in result[0].keys()
         
 
-async def test_search_vacancies_by_dates(aio_engine, create_vacancy):
+async def test_search_vacancies_by_dates(aio_engine, create_vacancy_return_data):
     today = datetime.utcnow().date()
-    vacancy_1 = await create_vacancy(modified_at=today - timedelta(days=6))
-    vacancy_2 = await create_vacancy(modified_at=today - timedelta(days=4))
-    vacancy_3 = await create_vacancy(modified_at=today - timedelta(days=2))
-    vacancy_4 = await create_vacancy(modified_at=today)
+    vacancy_1 = await create_vacancy_return_data(modified_at=today - timedelta(days=6))
+    vacancy_2 = await create_vacancy_return_data(modified_at=today - timedelta(days=4))
+    vacancy_3 = await create_vacancy_return_data(modified_at=today - timedelta(days=2))
+    vacancy_4 = await create_vacancy_return_data(modified_at=today)
 
     date_from = today - timedelta(days=4)
     expected_from = [vacancy_2, vacancy_3, vacancy_4]
@@ -157,11 +157,11 @@ async def test_search_vacancies_by_dates(aio_engine, create_vacancy):
         assert r['is_published']
 
 
-async def test_search_vacancies_by_query(aio_engine, create_vacancy):
-    expected = await create_vacancy(name='Разработчик аггрегатора вакансий')
-    await create_vacancy(name='Грузчик')
-    await create_vacancy(name='Продавец')
-    await create_vacancy(name='Мастер джедай')
+async def test_search_vacancies_by_query(aio_engine, create_vacancy_return_data):
+    expected = await create_vacancy_return_data(name='Разработчик аггрегатора вакансий')
+    await create_vacancy_return_data(name='Грузчик')
+    await create_vacancy_return_data(name='Продавец')
+    await create_vacancy_return_data(name='Мастер джедай')
 
     async with aio_engine.acquire() as conn:
         result = await vacancies.search_vacancies(conn, search_query='разработчик')
@@ -174,23 +174,23 @@ async def test_search_vacancies_by_query(aio_engine, create_vacancy):
     assert not 'search_index' in result[0].keys()
     
 
-async def test_search_vacancies_by_dates_and_query(aio_engine, create_vacancy):
+async def test_search_vacancies_by_dates_and_query(aio_engine, create_vacancy_return_data):
     today = datetime.utcnow().date()
     date_from = today - timedelta(days=5)
     date_to = today - timedelta(days=3)
-    await create_vacancy(
+    await create_vacancy_return_data(
         modified_at=today - timedelta(days=6),
         name='Кондитер',
     )
-    expected = await create_vacancy(
+    expected = await create_vacancy_return_data(
         modified_at=today - timedelta(days=4),
         name='Разработчик аггрегатора вакансий',
     )
-    await create_vacancy(
+    await create_vacancy_return_data(
         modified_at=today - timedelta(days=4),
         name='Менеджер самого среднего звена',
     )
-    await create_vacancy(
+    await create_vacancy_return_data(
         modified_at=today - timedelta(days=2),
         name='Разработчик на python',
     )
@@ -211,9 +211,9 @@ async def test_search_vacancies_by_dates_and_query(aio_engine, create_vacancy):
     assert not 'search_index' in result[0].keys()
 
 
-async def test_search_vacancies_defaut(aio_engine, create_vacancy):
-    expected = sorted([await create_vacancy() for _ in range(3)], key=lambda v: v['source_name'])
-    [await create_vacancy(is_published=False) for _ in range(3)]
+async def test_search_vacancies_defaut(aio_engine, create_vacancy_return_data):
+    expected = sorted([await create_vacancy_return_data() for _ in range(3)], key=lambda v: v['source_name'])
+    [await create_vacancy_return_data(is_published=False) for _ in range(3)]
 
     async with aio_engine.acquire() as conn:
         results = await vacancies.search_vacancies(conn)
@@ -227,8 +227,8 @@ async def test_search_vacancies_defaut(aio_engine, create_vacancy):
         assert not 'search_index' in r.keys()
 
 
-async def test_create_or_update_vacancy_update(aio_engine, create_vacancy):
-    created_vacancy_data = await create_vacancy(
+async def test_create_or_update_vacancy_update(aio_engine, create_vacancy_return_data):
+    created_vacancy_data = await create_vacancy_return_data(
         created_at=datetime.utcnow()-timedelta(days=5),
         modified_at=datetime.utcnow()-timedelta(days=5)
     )
@@ -250,8 +250,8 @@ async def test_create_or_update_vacancy_update(aio_engine, create_vacancy):
     assert result['modified_at'] == datetime.utcnow().date()
   
 
-async def test_update_vacancy_success(aio_engine, create_vacancy):
-    vacancy_data = await create_vacancy(is_published=False)
+async def test_update_vacancy_success(aio_engine, create_vacancy_return_data):
+    vacancy_data = await create_vacancy_return_data(is_published=False)
 
     expedted = {
         'name': 'Jedi Master',
@@ -294,10 +294,10 @@ async def test_update_vacancy_not_exists(aio_engine):
 
 
 async def test_delete_vacancy_success(aio_engine, create_vacancy):
-    vacancy_data = await create_vacancy()
+    vacancy = await create_vacancy()
 
     async with aio_engine.acquire() as conn:
-        result = await vacancies.delete_vacancy(conn, vacancy_id=1)
+        result = await vacancies.delete_vacancy(conn, vacancy_id=vacancy.id)
 
     assert result == 1
 
@@ -305,5 +305,26 @@ async def test_delete_vacancy_success(aio_engine, create_vacancy):
 async def test_delete_vacancy_not_exists(aio_engine, create_vacancy):
     async with aio_engine.acquire() as conn:
         result = await vacancies.delete_vacancy(conn, vacancy_id=5)
+
+    assert result == 0
+
+
+async def test_delete_vacancy_batch_success(aio_engine, create_vacancy):
+    vacancies_to_delete = [await create_vacancy() for _ in range(3)]
+    [await create_vacancy() for _ in range(3)]
+
+    delete_ids = [vacancy['id'] for vacancy in vacancies_to_delete]
+
+    async with aio_engine.acquire() as conn:
+        result = await vacancies.delete_vacancy_batch(conn, delete_ids)
+
+    assert result == 3
+
+
+async def test_delete_vacancy_batch_not_exists(aio_engine, create_vacancy):
+    [await create_vacancy() for _ in range(3)]
+
+    async with aio_engine.acquire() as conn:
+        result = await vacancies.delete_vacancy_batch(conn, [5,6])
 
     assert result == 0

@@ -239,13 +239,13 @@ async def test_check_token_blacklist_success(mocker, aio_patch, make_jwt_token):
     mock_is_blacklist.assert_awaited_with(mock_conn, expected_token)
 
 
-async def test_check_authentication(mocker, aio_patch, jwt_request):
+async def test_authenticate_request(mocker, aio_patch, jwt_request):
     expected_user = auth.User(id=1, username='Joda777', password_hash='123456')
     request, expected_token = jwt_request({})
     mock_auth = aio_patch('api.auth.authenticate')
     mock_auth.return_value = (expected_user, expected_token)
 
-    result = await auth.check_authentication(request)
+    result = await auth.authenticate_request(request)
 
     assert result['user'] == expected_user
     assert result['token'] == expected_token

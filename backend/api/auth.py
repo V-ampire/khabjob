@@ -148,7 +148,7 @@ async def check_token_blacklist(conn: SAConnection, token: str):
         raise TokenError('Token is invalid.')
 
 
-async def check_authentication(request: web.Request) -> web.Request:
+async def authenticate_request(request: web.Request) -> web.Request:
     """
     Check request authentication.
 
