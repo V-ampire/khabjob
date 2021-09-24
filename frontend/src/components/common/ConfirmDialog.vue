@@ -14,11 +14,11 @@
 </template>
 
 <script>
-/*
-Модальное окно для подтверждения действий.
-Метод open() возвращает промис с результатом true/false 
-в зависимости от того подтверждено ли действие.
-*/
+/**
+ * Modal window to confirm actions.
+ * Method open() return a Promise with result true/false
+ * depending on action confirmation.
+ */
 import { onOpenConfirmAction, confirmAction } from '@/events/utils.js'
 
 export default {

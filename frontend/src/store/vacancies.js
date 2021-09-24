@@ -37,6 +37,8 @@ export default {
     async GET_VACANCIES({ commit, rootState }, { params, fromPrivate }) {
       /**
        * Load vacancyList using API search.
+       * @params - Query string params
+       * @fromPrivate - If true, make requests to private API.
        */
       const api = (fromPrivate) ? privateVacanciesApi(rootState.auth.token) : publicVacanciesApi()
 

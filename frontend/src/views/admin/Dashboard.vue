@@ -47,7 +47,8 @@
 
 <script>
 import { mapState, mapActions } from 'vuex';
-import { showSuccessEvent, onConfirmAction } from '@/events/utils.js'
+import { showErrorAlert, showSuccessEvent, onConfirmAction } from '@/events/utils.js'
+import { ServerError } from '@/http/errors.js'
 import VacancyTable from '@/components/vacancies/VacancyTable'
 import VacanciesFilterBar from '@/components/vacancies/VacanciesFilterBar'
 import VacancyForm from '@/components/vacancies/VacancyForm'
@@ -84,35 +85,55 @@ export default {
       this.offset = this.limit * (page - 1)
 
       const filterParams = {
-          limit: this.limit,
-          offset: this.offset,
-          ...params
-        }
-
-      await this.GET_VACANCIES({
-        params: filterParams,
-        fromPrivate: true
-      })
-      window.scrollTo(0,0)
+        limit: this.limit,
+        offset: this.offset,
+        ...params
+      }
+      try {
+        await this.GET_VACANCIES({
+          params: filterParams,
+          fromPrivate: true
+        })
+        window.scrollTo(0,0)
+      } catch (error) {
+        showErrorAlert(error.message)
+        throw error
+      }
     },
     async remove() {
       const selectedIds = this.$refs.vacancyTable.getSelectedIds()
       const confirmMessage = `Удалить выбранные вакансии (${selectedIds.length} шт.)?`
       onConfirmAction({message: confirmMessage}, async (confirm) => {
         if (confirm) {
-          const response = await this.DELETE_VACANCIES(selectedIds)
-          showSuccessEvent(`Удалено ${response.delete} вакансий`)
+          try {
+            const response = await this.DELETE_VACANCIES(selectedIds)
+            showSuccessEvent(`Удалено ${response.delete} вакансий`)
+          } catch (error) {
+            showErrorAlert(error.message)
+            throw error
+          }
           await this.fetch()
           this.$refs.vacancyTable.clearSelected()
         }
       })
     },
-    async create(event) {
-      event.preventDefault()
+    async create() {
       if (this.$refs.createVacancyForm.validate()) {
         const createData = this.$refs.createVacancyForm.getAsFormData()
-        const vacancy = await this.CREATE_VACANCY(createData)
-        this.createdVacancy = vacancy
+        try {
+          const vacancy = await this.CREATE_VACANCY(createData)
+          this.createdVacancy = vacancy
+        } catch (error) {
+          if (error instanceof ServerError && error.status === 400) {
+            for (let field in error.data) {
+              this.$refs.createVacancyForm.setError(field, error.data[field])
+            }
+          }
+          else {
+            showErrorAlert(error.message)
+            throw error
+          }
+        }
       }
     }
   }

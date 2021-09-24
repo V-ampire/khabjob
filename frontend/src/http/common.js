@@ -14,6 +14,7 @@ http.interceptors.response.use((response) => {
   return response
 }, (error) => {
   if (error.request.status === 401 && error.config && !error.config.__isRetryRequest) {
+    // Если токен не валиден или просрочен выбросить событие для логаута
     eventBus.$emit(ON_APP_LOGOUT)
   }
   return Promise.reject(error);

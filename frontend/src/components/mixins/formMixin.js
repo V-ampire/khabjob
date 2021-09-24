@@ -1,3 +1,9 @@
+/**
+ * Mixin for components with form.
+ * Provide methods to get fields values as FormData oj Object.
+ * All Date fields converts to string in ISO format.
+ */
+
 import { convertToISODateString } from '@/utils.js'
 
 export default {
