@@ -1,4 +1,4 @@
-from aiohttp.web import HTTPForbidden
+from aiohttp.web import HTTPUnauthorized
 from aiohttp.test_utils import make_mocked_request
 
 import jwt
@@ -53,7 +53,7 @@ def test_authenticate_headers_invalid_header():
         '/', 
         headers={AUTH_CONFIG['JWT_HEADER_NAME']: 'Bearer 123 456'}
     )
-    with pytest.raises(HTTPForbidden):
+    with pytest.raises(HTTPUnauthorized):
         auth.authenticate_headers(request)
 
 
@@ -93,10 +93,10 @@ async def test_authenticate_request_token_expired(jwt_request, mocker):
     mock_check_exp = mocker.patch('api.auth.check_jwt_token_expired')
     mock_check_exp.side_effect = [auth.TokenError('Expired')]
 
-    with pytest.raises(HTTPForbidden) as err_403:
+    with pytest.raises(HTTPUnauthorized) as err_401:
         result = await auth.authenticate(request)
 
-    assert err_403.value.text == json.dumps({'reason': 'Expired'})
+    assert err_401.value.text == json.dumps({'reason': 'Expired'})
     mock_check_exp.assert_called_with(expected_expired)
 
 
@@ -106,10 +106,10 @@ async def test_authenticate_request_token_blacklisted(jwt_request, aio_patch, mo
     mock_is_blacklist = aio_patch('api.auth.check_token_blacklist')
     mock_is_blacklist.side_effect = [auth.TokenError('Blacklisted')]
 
-    with pytest.raises(HTTPForbidden) as err_403:
+    with pytest.raises(HTTPUnauthorized) as err_401:
         result = await auth.authenticate(request)
 
-    assert err_403.value.text == json.dumps({'reason': 'Blacklisted'})
+    assert err_401.value.text == json.dumps({'reason': 'Blacklisted'})
     assert mock_check_exp.call_count == 1
     assert mock_is_blacklist.await_count == 1
 
@@ -121,10 +121,10 @@ async def test_authenticate_request_user_not_found(jwt_request, aio_patch, mocke
     mock_get_user = aio_patch('api.auth.get_jwt_token_user')
     mock_get_user.side_effect = [auth.TokenError('No user')]
 
-    with pytest.raises(HTTPForbidden) as err_403:
+    with pytest.raises(HTTPUnauthorized) as err_401:
         result = await auth.authenticate(request)
     
-    assert err_403.value.text == json.dumps({'reason': 'No user'})
+    assert err_401.value.text == json.dumps({'reason': 'No user'})
     assert mock_check_exp.call_count == 1
     assert mock_is_blacklist.await_count == 1
     assert mock_get_user.await_count == 1
@@ -262,10 +262,10 @@ async def test_authenticate_user_not_found(aio_patch, mocker):
     mock_get_user = aio_patch('api.auth.get_user')
     mock_get_user.return_value = None
 
-    with pytest.raises(HTTPForbidden) as err_403:
+    with pytest.raises(HTTPUnauthorized) as err_401:
         await auth.authenticate_user(conn, **user_credentials)
 
-    assert err_403.value.text == json.dumps({'reason': 'Invalid user credentials.'})
+    assert err_401.value.text == json.dumps({'reason': 'Invalid user credentials.'})
     mock_get_user.assert_awaited_with(conn, username=user_credentials['username'])
 
 
@@ -280,10 +280,10 @@ async def test_authenticate_user_invalid_password(aio_patch, mocker):
     mock_conf_password = mocker.patch('api.auth.is_password_confirm')
     mock_conf_password.return_value = False
 
-    with pytest.raises(HTTPForbidden) as err_403:
+    with pytest.raises(HTTPUnauthorized) as err_401:
         await auth.authenticate_user(conn, **user_credentials)
 
-    assert err_403.value.text == json.dumps({'reason': 'Invalid user credentials.'})
+    assert err_401.value.text == json.dumps({'reason': 'Invalid user credentials.'})
     mock_get_user.assert_awaited_with(conn, username=user_credentials['username'])
 
 

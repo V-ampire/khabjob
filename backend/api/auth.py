@@ -41,7 +41,7 @@ async def authenticate(request: web.Request) -> Tuple[User, str, None]:
 
     If user authenticated return tuple (user, token),
     where user is instance of User dataclass, else return (None, None),
-    or raise 403 HTTPForbidden.
+    or raise 401 HTTPUnauthorized.
     """
     raw_token = authenticate_headers(request)
 
@@ -63,7 +63,7 @@ async def authenticate(request: web.Request) -> Tuple[User, str, None]:
             await check_token_blacklist(conn, raw_token)
             user = await get_jwt_token_user(conn, user_id)
     except TokenError as error:
-        raise web.HTTPForbidden(
+        raise web.HTTPUnauthorized(
             text=json.dumps({'reason': error.message}),
             content_type='application/json',
         )
@@ -76,7 +76,7 @@ def authenticate_headers(request: web.Request) -> Optional[str]:
     Extract jwt token from authorization header.
 
     If no auth header or token return None.
-    Raise HTTPForbidden 403 if token has invalid format.
+    Raise HTTPUnauthorized 401 if token has invalid format.
     """
     header_body = request.headers.get(AUTH_CONFIG['JWT_HEADER_NAME'], None)
 
@@ -95,7 +95,7 @@ def authenticate_headers(request: web.Request) -> Optional[str]:
         return None
 
     if len(parts) != 2:
-        raise web.HTTPForbidden(
+        raise web.HTTPUnauthorized(
             text=json.dumps({'reason': 'Bad authorization header.'}),
             content_type='application/json',
         )
@@ -154,7 +154,7 @@ async def authenticate_request(request: web.Request) -> web.Request:
 
     If authentication is successed, 
     store in request user and token via request['user'], request['token'].
-    Else raise 403 Forbidden.
+    Else raise 401 HTTPUnauthorized.
     """
     user, token = await authenticate(request)
     request['user'] = user
@@ -183,13 +183,13 @@ async def authenticate_user(conn: SAConnection, **user_credentials) -> User:
     """
     Authenticate user by credentials.
 
-    If success return User, else raise HTTPForbidden 403.
+    If success return User, else raise HTTPUnauthorized 401.
     """
     password = user_credentials.pop('password')
     user = await get_user(conn, **user_credentials)
 
     if user is None or not is_password_confirm(password, user.password_hash):
-        raise web.HTTPForbidden(
+        raise web.HTTPUnauthorized(
             text=json.dumps({'reason': 'Invalid user credentials.'}),
             content_type='application/json',
         )

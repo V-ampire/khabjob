@@ -368,18 +368,21 @@ async def test_private_delete_vacancy_batch(api_client, create_vacancy, auth_hea
     url = api_client.app.router['vacancy_private_list'].url_for().with_query({'id': vacancies_ids})
 
     resp = await api_client.delete(url, headers=headers)
+    result = await resp.json()
+    
 
     async with aio_engine.acquire() as conn:
         stmt = select(vacancies_table).where(vacancies_table.c.id.in_(vacancies_ids))
         cursor = await conn.execute(stmt)
-        result = await cursor.fetchall()
+        expected = await cursor.fetchall()
 
         stmt = select(vacancies_table)
         cursor = await conn.execute(stmt)
         exists = await cursor.fetchall()
 
-    assert resp.status == 204
-    assert len(result) == 0
+    assert resp.status == 200
+    assert result == {'delete': len(vacancies_to_delete)}
+    assert len(expected) == 0
     assert sorted([v.id for v in exists]) == sorted([v.id for v in vacancies_to_exist])
 
 
@@ -391,11 +394,13 @@ async def test_private_delete_vacancy_batch_with_id_not_exists(api_client, creat
     url = api_client.app.router['vacancy_private_list'].url_for().with_query({'id': 10})
 
     resp = await api_client.delete(url, headers=headers)
+    result = await resp.json()
 
     async with aio_engine.acquire() as conn:
         stmt = select(vacancies_table)
         cursor = await conn.execute(stmt)
         exists = await cursor.fetchall()
 
-    assert resp.status == 204
+    assert resp.status == 200
+    assert result == {'delete': 0}
     assert sorted([v.id for v in exists]) == sorted([v.id for v in vacancies_to_exist])

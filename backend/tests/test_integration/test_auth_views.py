@@ -23,7 +23,7 @@ async def test_login_view_with_invalid_password(api_client, create_user):
     resp = await api_client.post(url, json=credentials)
     result = await resp.json()
 
-    assert resp.status == 403
+    assert resp.status == 401
     assert result['reason'] == 'Invalid user credentials.'
 
 
@@ -39,7 +39,7 @@ async def test_login_view_with_invalid_username(api_client):
     resp = await api_client.post(url, json=credentials)
     result = await resp.json()
 
-    assert resp.status == 403
+    assert resp.status == 401
     assert result['reason'] == 'Invalid user credentials.'
 
 
@@ -79,14 +79,14 @@ async def test_logout_view_success(api_client, create_user, aio_engine):
     resp = await api_client.get(url, headers=headers)
     result = await resp.json()
 
-    resp_403 = await api_client.get("/private/vacancies", headers=headers)
+    resp_401 = await api_client.get("/private/vacancies", headers=headers)
 
     async with aio_engine.acquire() as conn:
         assert await is_token_blacklisted(conn, expected_token)
 
     resp.status == 200
     result == {'status': 'logout'}
-    assert resp_403.status == 403
+    assert resp_401.status == 401
 
 
 async def test_logout_view_unauthorized(api_client, create_user, aio_engine):
@@ -107,7 +107,7 @@ async def test_logout_view_invalid_token(api_client, make_jwt_token):
 
     resp = await api_client.get(url, headers=headers)
     
-    assert resp.status == 403
+    assert resp.status == 401
 
 
 async def test_reset_password_view_with_invalid_credentials(api_client, create_user, aio_engine):
@@ -135,8 +135,8 @@ async def test_reset_password_view_with_invalid_credentials(api_client, create_u
     async with aio_engine.acquire() as conn:
         expected_user =  await get_user(conn, username=user.username)
 
-    assert resp_username.status == 403
-    assert resp_password.status == 403
+    assert resp_username.status == 401
+    assert resp_password.status == 401
     assert not is_password_confirm('qWerty%56', expected_user.password_hash)
 
 
