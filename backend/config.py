@@ -69,3 +69,37 @@ AUTH_CONFIG = {
 CORS_CONFIG = {
     'CORS_ALLOWED_ORIGINS': env.list('CORS_ALLOWED_ORIGINS')
 }
+
+
+# https://docs.aiohttp.org/en/stable/logging.html
+LOG_CONFIG = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'server': {
+            'class': 'loggers.QueueFileHandler',
+            'filename': env.str(
+                'SERVER_LOGFILE', 
+                default=str(BASE_DIR.joinpath('server.log'))
+            ),
+        },
+        'file': {
+            'class': 'loggers.QueueFileHandler',
+            'filename': env.str(
+                'ROOT_LOGFILE', 
+                default=str(BASE_DIR.joinpath('backend.log'))
+            ),
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+        },
+        'aiohttp.server': {
+            'handlers': ['server'],  # Log server errors
+            'level': 'ERROR',
+            'propagate': False
+        }
+    }
+}

@@ -65,7 +65,7 @@ async def parse_vacancies_to_db(parsers: List[str]=[]):
                         updated,
                     ))
 
-
+                    
 async def run_parsers(parsers: List[str]=[]) -> List[Dict[str, str]]:
     """Run parser and return results as list of dicts."""
     if len(parsers) > 0:

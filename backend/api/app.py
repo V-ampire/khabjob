@@ -14,7 +14,7 @@ from types import MappingProxyType
 
 from core.db.utils import get_postgres_dsn
 
-from config import CORS_CONFIG
+from config import CORS_CONFIG, LOG_CONFIG, DEBUG
 
 
 async def setup_db(app: web.Application):
@@ -64,9 +64,3 @@ def init_app(config: Optional[Dict]=None) -> web.Application:
     PAYLOAD_REGISTRY.register(JsonPayload, (Mapping, MappingProxyType))
 
     return app
-
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    app = init_app()
-    web.run_app(app)

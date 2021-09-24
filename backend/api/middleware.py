@@ -10,6 +10,7 @@ async def jwt_auth_middleware(request, handler):
     
     Middleware set user as request['user'] and token as request['token']
     """
+    1/0
     authenticated_request = await authenticate_request(request)
     return await handler(authenticated_request)
     

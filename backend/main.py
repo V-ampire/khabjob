@@ -11,6 +11,7 @@ from pydantic import (
 import asyncio
 import click
 import logging
+from logging.config import dictConfig
 from typing import List
 
 from api.app import init_app
@@ -20,6 +21,8 @@ from core.db.utils import create_db, apply_migrations, get_postgres_dsn
 from core.services.auth import create_user
 
 from jobparser.utils import parse_vacancies_to_db, run_parsers
+
+from config import LOG_CONFIG, DEBUG
 
 
 async def echo_parsers_results(parsers: List[str]=[]):
@@ -82,10 +85,11 @@ def runparsers(parsers: List[str]):
 @click.command(name='run_app')
 @click.option('-h', '--host', type=str)
 @click.option('-p', '--port', type=str)
-def runapp(host, port):
+@click.option('--path', type=str)
+def runapp(host, port, path):
     """Start API server."""
-    app = init_app({})
-    web.run_app(app, host=host, port=port)
+    app = init_app()
+    web.run_app(app, host=host, port=port, path=path)
 
 
 @click.command(name='create_user')
@@ -112,5 +116,8 @@ cli.add_command(createuser)
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    if DEBUG:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        dictConfig(LOG_CONFIG)
     cli()
