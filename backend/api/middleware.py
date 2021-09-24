@@ -1,6 +1,12 @@
-from aiohttp.web import middleware
+from aiohttp.web import middleware, View
 
 from api.auth import authenticate_request
+
+from aiohttp_cors import CorsViewMixin
+
+
+class PreflightView(CorsViewMixin, View):
+    pass
 
 
 @middleware

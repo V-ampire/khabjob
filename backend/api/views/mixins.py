@@ -29,7 +29,7 @@ class AuthenticatedRequiredMixin:
     """
     Mixin limits access only for authenticated requests.
     
-    :attr SAFE_METHODS: Requests via these methods will process without authentication check,
+    :attr ALLOW_OPTIONS_REQUEST: Allow process OPTIONS requests withou authentication,
     for example OPTIONS for CORS preflight cases.
     #############################################
     WARNING: Could be potentially security issue.
@@ -38,13 +38,13 @@ class AuthenticatedRequiredMixin:
     https://github.com/aio-libs/aiohttp-cors/issues/193
     """
 
-    SAFE_METHODS = ('OPTIONS',)
+    ALLOW_OPTIONS_REQUEST = True
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if self.request.method in self.SAFE_METHODS:
-            return # FIXME Send empty response in middleware (?)
+        if self.request.method == 'OPTIONS' and self.ALLOW_OPTIONS_REQUEST:
+            return
             
         if self.request.get('user', None) is None:
             raise web.HTTPForbidden(
