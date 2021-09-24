@@ -89,7 +89,7 @@ export default {
       try {
         await this.LOGIN(credentials)
       } catch (error) {
-        if (error instanceof ServerError && error.status === 403) {
+        if (error instanceof ServerError && error.status === 400) {
           this.formErrors.push('Неверные имя пользователя или пароль.')
         } else {
           this.formErrors.push(error.message)

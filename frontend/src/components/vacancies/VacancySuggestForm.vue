@@ -146,12 +146,10 @@ export default {
             this.resetFields()
             this.showConfirm = false
           }, 2000)
-        } catch(error) {
+        } catch (error) {
           if (error instanceof ServerError) {
             for (let field in error.data) {
-              if (field in this.fields) {
-                this.fields[field].error = error.data[field]
-              }
+              this.setError(field, error.data[field])
             }
           } else {
             console.log(error.data)

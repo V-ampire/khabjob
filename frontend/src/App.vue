@@ -87,8 +87,10 @@ import VacancySuggestForm from '@/components/vacancies/VacancySuggestForm.vue'
 import ErrorAlert from '@/components/common/ErrorAlert.vue'
 import SuccessAlert from '@/components/common/SuccessAlert.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
-import { mapState, mapGetters, mapActions } from 'vuex';
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex';
 import { showErrorAlert } from '@/events/utils.js'
+import { ON_APP_LOGOUT } from '@/events/types.js'
+import eventBus from '@/events/eventBus.js'
 
 export default {
   components: {
@@ -111,9 +113,21 @@ export default {
       'isAuthenticated'
     ])
   },
+  mounted() {
+    eventBus.$on(ON_APP_LOGOUT, () => {
+      this.REMOVE_USER()
+      this.REMOVE_TOKEN()
+      console.log('TOKEN IS INVALID')
+      this.$router.push({ name: 'Login' })
+    })
+  },
   methods: {
     ...mapActions('auth', [
       'LOGOUT',
+    ]),
+    ...mapMutations('auth', [
+      'REMOVE_USER',
+      'REMOVE_TOKEN',
     ]),
     openSearchBar() {
       this.$refs.searchBar.open()

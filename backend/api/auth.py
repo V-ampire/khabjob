@@ -183,7 +183,7 @@ async def authenticate_user(conn: SAConnection, **user_credentials) -> User:
     """
     Authenticate user by credentials.
 
-    If success return User, else raise HTTPUnauthorized 401.
+    If success return User, else raise HTTPBadRequest 400.
     """
     password = user_credentials.pop('password')
     user = await get_user(conn, **user_credentials)
