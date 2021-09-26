@@ -38,7 +38,7 @@ PARSERS_CONFIG = {
     }
 }
 
-VACANCY_EXPIRED = timedelta(weeks=4*2) # Clean vacancies every 2 mounth
+VACANCY_EXPIRED = timedelta(days=4*2) # Clean vacancies every 2 mounth
 
 
 SELF_SOURCE_NAME = 'khabjob' # Name of source for vacancies added on site
@@ -72,6 +72,8 @@ CORS_CONFIG = {
 
 
 # https://docs.aiohttp.org/en/stable/logging.html
+# This configuration applies when DEBUG is off.
+
 LOG_CONFIG = {
     'version': 1,
     'disable_existing_loggers': False,

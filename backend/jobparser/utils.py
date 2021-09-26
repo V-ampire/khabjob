@@ -5,7 +5,7 @@ import aiohttp
 from aiopg.sa import create_engine
 
 import logging
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from jobparser.parsers import HHParser, SuperjobParser, VkParser, FarpostParser
 
@@ -83,6 +83,3 @@ async def run_parsers(parsers: List[str]=[]) -> List[Dict[str, str]]:
                 tasks.append(parser.get_vacancies())
         vacancies = await asyncio.gather(*tasks)
     return vacancies
-
-
-

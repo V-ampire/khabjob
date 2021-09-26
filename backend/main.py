@@ -10,6 +10,7 @@ from pydantic import (
 
 import asyncio
 import click
+from datetime import datetime
 import logging
 from logging.config import dictConfig
 from typing import List
@@ -19,10 +20,11 @@ from api.validation.auth import validate_password_format
 
 from core.db.utils import create_db, apply_migrations, get_postgres_dsn
 from core.services.auth import create_user
+from core.services.vacancies import delete_expired_vacancies
 
 from jobparser.utils import parse_vacancies_to_db, run_parsers
 
-from config import LOG_CONFIG, DEBUG
+from config import LOG_CONFIG, DEBUG, VACANCY_EXPIRED
 
 
 async def echo_parsers_results(parsers: List[str]=[]):
@@ -36,6 +38,17 @@ async def add_user(username: str, password: str):
             await create_user(conn, username, password)
 
     click.echo(click.style('User successfully created!', fg='green'))
+
+
+async def clean_up_expired_vacancies():
+    async with create_engine(get_postgres_dsn()) as aio_engine:
+        async with aio_engine.acquire() as conn:
+            deleted_count = await delete_expired_vacancies(conn, VACANCY_EXPIRED)
+
+    click.echo(
+        click.style('{0} vacancies were deleted!'.format(deleted_count), fg='green')
+    )
+
 
 
 class UserCredentials(BaseModel):
@@ -108,11 +121,17 @@ def createuser():
     asyncio.run(add_user(user_credentials.username, user_credentials.password1))
 
 
+@click.command(name='drop_expired_vacancies')
+def dropexpired():
+    asyncio.run(clean_up_expired_vacancies())
+
+
 cli.add_command(updatevacancies)
 cli.add_command(runparsers)
 cli.add_command(initdb)
 cli.add_command(runapp)
 cli.add_command(createuser)
+cli.add_command(dropexpired)
 
 
 if __name__ == '__main__':

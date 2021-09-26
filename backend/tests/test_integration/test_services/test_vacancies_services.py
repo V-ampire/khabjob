@@ -328,3 +328,21 @@ async def test_delete_vacancy_batch_not_exists(aio_engine, create_vacancy):
         result = await vacancies.delete_vacancy_batch(conn, [5,6])
 
     assert result == 0
+
+
+async def test_delete_expired_vacancies(aio_engine, create_vacancy):
+    expired_date = datetime.utcnow() - timedelta(days=2)
+    actual_date = datetime.utcnow()
+
+    expired_vacancies = [await create_vacancy(modified_at=expired_date) for _ in range(3)]
+    actual_vacancies = [await create_vacancy(modified_at=actual_date) for _ in range(3)]
+
+    async with aio_engine.acquire() as conn:
+        result = await vacancies.delete_expired_vacancies(conn, timedelta(days=1))
+
+        existed_cursor = await conn.execute(select(vacancies_table))
+        existed_vacancies = await existed_cursor.fetchall()
+
+    assert actual_vacancies == existed_vacancies
+    assert result == 3
+

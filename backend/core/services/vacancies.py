@@ -7,7 +7,7 @@ from aiopg.sa.result import RowProxy
 from sqlalchemy import select, insert, func, update, delete
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import List, Dict, Optional, Tuple
 
 from core.db.schema import vacancies_table
@@ -153,7 +153,7 @@ async def delete_vacancy(conn: SAConnection, vacancy_id: int) -> int:
 
     result = await conn.execute(stmt)
     return result.rowcount
-
+conn: SAConnection
 
 async def delete_vacancy_batch(conn: SAConnection, vacancy_ids: List[int]) -> int:
     """
@@ -165,5 +165,17 @@ async def delete_vacancy_batch(conn: SAConnection, vacancy_ids: List[int]) -> in
     """
     stmt = delete(vacancies_table).where(vacancies_table.c.id.in_(vacancy_ids))
 
+    result = await conn.execute(stmt)
+    return result.rowcount
+
+
+async def delete_expired_vacancies(conn: SAConnection, expired_delta: timedelta) -> int:
+    """
+    Remove expired vacancies from database.
+
+    :param expired_delta: Remove vacancies outside of this timedelta.
+    """
+    expired_datetime = datetime.utcnow() - expired_delta
+    stmt = delete(vacancies_table).where(vacancies_table.c.modified_at <= expired_datetime.date())
     result = await conn.execute(stmt)
     return result.rowcount
