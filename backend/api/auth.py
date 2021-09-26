@@ -189,7 +189,7 @@ async def authenticate_user(conn: SAConnection, **user_credentials) -> User:
     user = await get_user(conn, **user_credentials)
 
     if user is None or not is_password_confirm(password, user.password_hash):
-        raise web.HTTPUnauthorized(
+        raise web.HTTPBadRequest(
             text=json.dumps({'reason': 'Invalid user credentials.'}),
             content_type='application/json',
         )
