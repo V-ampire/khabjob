@@ -1,7 +1,7 @@
 <template>
   <div class="wrapper h-100 d-flex flex-column justify-content-between">
     <div class="vacancies">
-      <b-container fluid class="justify-content-between">
+      <b-container fluid="xl" class="justify-content-between">
         <b-row>
           <b-col class="mb-2" cols="12">
             <div class="vacancies-search d-flex flex-column flex-sm-row">

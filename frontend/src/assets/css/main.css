@@ -35,6 +35,10 @@ a:hover {
     color: rgb(39, 38, 38);
 }
 
+.text-underline {
+    text-decoration: underline;
+}
+
 .page-link {
     color:black;
 }
@@ -77,6 +81,10 @@ header {
     background-color: #0275d8;
 }
 
+footer {
+    background-color: #0275d8;
+}
+
 .navbar {
     color: black;
     background-color: #0275d8;
@@ -90,4 +98,12 @@ header {
 .navbar-brand-logo {
     height: 3rem;
     width: auto;
+}
+
+
+@media (min-width: 768px) {
+    html,
+    body {
+        font-size: 18px;
+    }
 }

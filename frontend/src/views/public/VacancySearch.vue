@@ -1,7 +1,7 @@
 <template>
   <div class="wrapper h-100 d-flex flex-column justify-content-between">
     <div class="vacancies">
-      <b-container fluid class="justify-content-between">
+      <b-container fluid="xl" class="justify-content-between">
         <b-row>
           <b-col cols="12">
             <div class="vacancies-search-data mb-3">
@@ -19,8 +19,8 @@
                   Некорректный поисковой запрос, пожалуйста проверьте данные.
                 </p>
                 <p>
-                  Вы можете вернуться на <a class="text-underline" href="{% url 'vacancies:index' %}">главную</a> 
-                  или <span class="search-toggler text-underline">продолжить поиск.</span>
+                  Вы можете вернуться на <router-link to="/"><span class="text-underline">главную</span></router-link>
+                  или продолжить поиск.
                 </p>
               </div>
             </div>

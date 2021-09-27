@@ -11,54 +11,55 @@
     <div class="flex-wrapper">
       <div class="wrapper d-flex flex-column">
         <header class="header mb-2" id="header">
-          <nav class="navbar justify-content-between m-auto">
-            
-            <span class="navbar-brand">
-              <router-link to="/">
-                <img class="navbar-brand-logo" src="@/assets/img/khabjob_logo.png" alt="khabjob">
-              </router-link>
-            </span>
-            <div class="navbar-controls d-flex mr-1">
-              <div class="navbar-search mr-2">
-                <a 
-                  class="navbar-search-toggler mr-2 mr-md-4"
-                  v-on:click="openSearchBar"
-                >
-                  <font-awesome-icon size="lg" icon="search" />
-                </a>
+          <b-container fluid="xl">
+            <nav class="navbar justify-content-between m-auto">
+              <span class="navbar-brand">
+                <router-link to="/">
+                  <img class="navbar-brand-logo" src="@/assets/img/khabjob_logo.png" alt="khabjob">
+                </router-link>
+              </span>
+              <div class="navbar-controls d-flex mr-1">
+                <div class="navbar-search mr-2">
+                  <a 
+                    class="navbar-search-toggler mr-2 mr-md-4"
+                    v-on:click="openSearchBar"
+                  >
+                    <font-awesome-icon size="lg" icon="search" />
+                  </a>
+                </div>
+                <div class="navbar-user" v-if="isAuthenticated">
+                  <a class="navbar-user-toggler" id="userToggler" @click="!show">
+                    <font-awesome-icon size="lg" icon="user-circle" />
+                  </a>
+                  <b-popover :show.sync="showUserMenu" variant="primary" target="userToggler">
+                    <template #title>{{ user }}</template>
+                    <b-list-group>
+                      <b-list-group-item>
+                        <router-link :to="{name: 'Dashboard'}">Админка</router-link>
+                      </b-list-group-item>
+                      <b-list-group-item>
+                        <a @click="logout">Выйти</a>
+                      </b-list-group-item>
+                    </b-list-group>
+                  </b-popover>
+                </div>
               </div>
-              <div class="navbar-user" v-if="isAuthenticated">
-                <a class="navbar-user-toggler" id="userToggler" @click="!show">
-                  <font-awesome-icon size="lg" icon="user-circle" />
-                </a>
-                <b-popover :show.sync="showUserMenu" variant="primary" target="userToggler">
-                  <template #title>{{ user }}</template>
-                  <b-list-group>
-                    <b-list-group-item>
-                      <router-link :to="{name: 'Dashboard'}">Админка</router-link>
-                    </b-list-group-item>
-                    <b-list-group-item>
-                      <a @click="logout">Выйти</a>
-                    </b-list-group-item>
-                  </b-list-group>
-                </b-popover>
-              </div>
-            </div>
-          </nav>
+            </nav>
+          </b-container>
         </header>
         <main class="flex-fill">
           <router-view />
         </main>
       </div>
-      <footer class="bg-primary">
+      <footer>
         <b-container class="my-2">
           <b-row>
-            <b-col cols="12">
-              <div class="add-vacancy">
+            <b-col cols="12" sm="10" class="m-auto">
+              <div class="add-vacancy m-auto">
                 <b-dropdown
-                  block
+                block
                   menu-class="w-100"
-                  variant="dark"
+                  variant="danger"
                   text="Предложить вакансию"
                 >
                   <VacancySuggestForm />
@@ -67,7 +68,7 @@
             </b-col>
           </b-row>
           <b-row>
-            <b-col cols="12" class="mb-2 mx-auto text-white">
+            <b-col cols="6" class="mb-2 mx-auto text-white text-center">
               Разработчик сайта: <strong>
               <a class="developer-name text-white" href="https://vk.com/id152010495">
                 V-ampire
