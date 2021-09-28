@@ -3,9 +3,10 @@ Description=run server for khabjob.ru
 After=network.target
 
 [Service]
-User=nobody
-WorkingDirectory=template_path/backend
-ExecStart=template_path/backend/env/bin/python template_path/backend/main.py --path=/tmp/khabjob.sock
+User=django
+Group=django
+WorkingDirectory=/home/django/projects/khabjob/backend
+ExecStart=/home/django/projects/khabjob/backend/env/bin/python /home/django/projects/khabjob/backend/main.py run_app --path=/tmp/khabjob.sock
 Restart=on-failure
 
 [Install]
