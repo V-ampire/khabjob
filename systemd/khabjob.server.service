@@ -1,0 +1,12 @@
+[Unit]
+Description=run server for khabjob.ru
+After=network.target
+
+[Service]
+User=nobody
+WorkingDirectory=template_path/backend
+ExecStart=template_path/backend/env/bin/python template_path/backend/main.py --path=/tmp/khabjob.sock
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

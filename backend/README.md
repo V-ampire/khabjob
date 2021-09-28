@@ -1,20 +1,34 @@
 # Бекенд для агрегатора вакансий г. Хабаровска khabjob.ru.
 
 Написан на:
-- python 3.8
-- aiohttp
-- postgresql
-- sqlalchemy core
+- `python 3.8` - язык программирования
+- `aiohttp` - веб-фреймворк
+- `postgresql` - база данных
+- `sqlalchemy core` - запросы к базе данных
+- `alembic` - управление миграциями базы данных
+- `pydantic` - валидация данных
+- `pytest` - тесты
 
 
-## Переменные окружения
+## Деплой
 
 Установить следующие переменные окружения:
 
 ```
-# Путь для доступа к API, с указанием протокола,
-# например https:://khabjob.ru/api
-API_ROOT=
+# Режим дебага, off для production
+DEBUG=
+
+# Секретный ключ
+SECRET_KEY=
+
+# Путь для логов сервера
+SERVER_LOGFILE=
+# Путь для логов остального приложения
+ROOT_LOGFILE=
+
+# Список источников, с которых разрешено делать межсайтовые запросы к API
+# https://developer.mozilla.org/ru/docs/Web/HTTP/CORS
+CORS_ALLOWED_ORIGINS=
 
 # Секретный ключ для API superjob.ru
 SJ_SECRET_KEY=
@@ -30,6 +44,8 @@ POSTGRES_PASSWORD=
 POSTGRES_HOST=
 POSTGRES_PORT=
 ```
+
+
 
 
 ## Команды:
