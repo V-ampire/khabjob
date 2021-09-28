@@ -1,3 +1,6 @@
+"""
+Validation models for vacancies data.
+"""
 from pydantic import (
     BaseModel,
     validator,
@@ -38,6 +41,7 @@ class PublicVacancy(BaseVacancy):
     Fields should include name and source or description.
     Source name always the sitename.
     """
+
     name: str
     source_name: str = SELF_SOURCE_NAME
     is_published: bool = False
@@ -58,6 +62,7 @@ class PrivatePostVacancy(BaseVacancy):
     
     Requires name and is_published fields.
     """
+
     name: str
     is_published: bool
    
@@ -68,6 +73,7 @@ class PrivatePutVacancy(BaseVacancy):
     
     For full update doesn't allow optional values.
     """
+    
     name: str
     source: HttpUrl
     source_name: str
@@ -81,11 +87,13 @@ class PrivatePatchVacancy(BaseVacancy):
     
     All fields are optional.
     """
+
     source_name: Optional[str]
 
 
 class SearchOptions(BaseModel):
     """Pydantic model to validate serach options."""
+
     date_from: Optional[date]
     date_to: Optional[date]
     search_query: Optional[str]
@@ -99,6 +107,7 @@ class SearchOptions(BaseModel):
 
 class PublicFilterOptions(BaseModel):
     """Model to validate filter options for public API."""
+
     modified_at: Optional[date]
 
     @validator('modified_at', pre=True)
@@ -109,6 +118,7 @@ class PublicFilterOptions(BaseModel):
 
 class PrivateFilterOptions(BaseModel):
     """Model to validate filter options for private API."""
+    
     source_name: Optional[str]
     is_published: Optional[bool]
     modified_at: Optional[date]

@@ -1,7 +1,9 @@
+"""Set up API routes."""
 from api.views import public, private, auth, search
 
 
 def setup_routes(app):
+    """Set up API routes."""
     app.router.add_view('/public/vacancies', public.Vacancies, name='vacancy_public_list')
     app.router.add_view('/public/vacancies/{id}', public.Vacancies, name='vacancy_public_detail')
     

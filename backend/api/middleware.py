@@ -1,3 +1,6 @@
+"""
+API middlewares.
+"""
 from aiohttp.web import middleware
 
 from api.auth import authenticate_request

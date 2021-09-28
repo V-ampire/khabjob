@@ -1,10 +1,10 @@
+"""Parser classes."""
 import asyncio
 
 import aiofiles
 
 from bs4 import BeautifulSoup
 
-from datetime import datetime
 import json
 from itertools import count
 from random import uniform
@@ -30,11 +30,11 @@ class HHParser(BaseParser):
     def get_params(self):
         """Return params for request to hh.ru API."""
         return {
-            "area": 102,
-            "period": 1,
-            "text": "Хабаровск",
-            "per_page": self.per_page,
-            "page": next(self._page_count)
+            'area': 102,
+            'period': 1,
+            'text': 'Хабаровск',
+            'per_page': self.per_page,
+            'page': next(self._page_count),
         }
 
     async def get_vacancies(self) -> List[Dict[str, str]]:
@@ -66,7 +66,7 @@ class HHParser(BaseParser):
 class SuperjobParser(BaseParser):
     """Parser for vacancies from superjob.ru."""
 
-    base_url = "https://superjob.ru"
+    base_url = 'https://superjob.ru'
     name = 'superjob'
 
     per_page = 100
@@ -80,7 +80,7 @@ class SuperjobParser(BaseParser):
             'period': 1,
             'town': 56,
             'count': self.per_page,
-            'page': next(self._page_count)
+            'page': next(self._page_count),
         }
 
     async def get_vacancies(self) -> List[Dict[str, str]]:
@@ -102,7 +102,7 @@ class SuperjobParser(BaseParser):
                 vacancy = {
                     'name': item['profession'],
                     'source': item['link'],
-                    'source_name': self.name
+                    'source_name': self.name,
                 }
                 vacancies.append(vacancy)
 
@@ -113,7 +113,7 @@ class SuperjobParser(BaseParser):
 class FarpostParser(BaseParser):
     """Parser for vacancies from farpost.ru."""
 
-    base_url = "https://www.farpost.ru"
+    base_url = 'https://www.farpost.ru'
     name = 'farpost'
 
     _page_count = count(1)
@@ -137,7 +137,7 @@ class FarpostParser(BaseParser):
         while True:
 
             markup = await self.get_html(self.get_next_page_url(), cookies=cookies)
-            html = BeautifulSoup(markup, "lxml")
+            html = BeautifulSoup(markup, 'lxml')
 
             items = html.find_all('tr', class_='bull-item')
             for item in items:
@@ -146,7 +146,7 @@ class FarpostParser(BaseParser):
                         'name': item.find('a', class_='bulletinLink').get_text(),
                         'source': '{0}{1}'.format(
                             self.base_url,
-                            item.find('a', class_='bulletinLink').get('href')
+                            item.find('a', class_='bulletinLink').get('href'),
                         ),
                         'source_name': self.name,
                     }
@@ -169,7 +169,7 @@ class FarpostParser(BaseParser):
 class VkParser(BaseParser):
     """Parser for vacancies from vk.ru."""
 
-    base_url = "https://vk.com"
+    base_url = 'https://vk.com'
     name = 'vk'
 
     async def get_vacancies(self) -> List[Dict[str, str]]:

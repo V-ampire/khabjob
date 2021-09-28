@@ -1,3 +1,6 @@
+"""
+Validation models for auth data.
+"""
 from pydantic import (
     BaseModel,
     validator,
@@ -41,7 +44,7 @@ class ResetPasswordData(BaseModel):
             raise ValueError('Password mismatch.')
 
 
-def validate_password_format(password: str, pattern: Optional[str]=None):
+def validate_password_format(password: str, pattern: Optional[str] = None):
     """Validate password by regexp pattern."""
     pattern = pattern or AUTH_CONFIG['PASSWORD_PATTERN']
     result = re.match(pattern, password)

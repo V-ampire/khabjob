@@ -1,3 +1,6 @@
+"""
+Base parser class.
+"""
 from aiohttp import ClientSession
 
 from typing import Dict, Any, Optional
@@ -7,7 +10,7 @@ class ParserConfigError(Exception):
     """Exception for invalid parser configuration."""
 
 
-class BaseParser():
+class BaseParser:
     """Base class for parsers."""
 
     base_url = None
@@ -23,19 +26,19 @@ class BaseParser():
         """Initialization."""
         if self.base_url is None:
             raise ParserConfigError(
-                "You must set attribute base_url for relative url to vacancies."
+                'You must set attribute base_url for relative url to vacancies.'
             )
 
         if self.name is None:
             raise ParserConfigError(
-                "You must set attribute name for parser."
+                'You must set attribute name for parser.'
             )
 
         try:
             self.parse_url = config['parse_url']
         except KeyError:
             raise ParserConfigError(
-                "You must set 'parse_url' parameter in parser config."
+                'You must set 'parse_url' parameter in parser config.'
             )
 
         self.config = config
@@ -56,8 +59,8 @@ class BaseParser():
         return html
 
     async def get_json(self, url: str, 
-                       params: Optional[Dict[str, str]]=None,
-                       headers: Optional[Dict[str, str]]=None,
+                       params: Optional[Dict[str, str]] = None,
+                       headers: Optional[Dict[str, str]] = None,
                        **kwargs) -> Dict:
         """Get json data from url."""
         request_headers = {

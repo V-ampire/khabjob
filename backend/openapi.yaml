@@ -1,0 +1,441 @@
+openapi: '3.0.2'
+info:
+  title: Khabjob API
+  description: 'REST API аггрегатора вакансий по Хабаровску khabjob.ru'
+  version: '1.0'
+
+components:
+  schemas:
+    Vacancy:
+      description: Подробная информация об опубликованной вакансии.
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        source:
+          type: string
+        source_name:
+          type: string
+        description:
+          type: string
+        modified_at:
+          type: string
+          format: date
+        is_published:
+          type: boolean
+    VacancySuggest:
+      description: Данные для предложения вакансии.
+      type: object
+      properties:
+        name:
+          type: string
+        source:
+          type: string
+        description:
+          type: string
+    VacancyData:
+      description: Данные вакансии.
+      type: object
+      properties:
+        name:
+          type: string
+        source:
+          type: string
+        source_name:
+          type: string
+        description:
+          type: string
+        is_published:
+          type: boolean
+    VacancyList:
+      description: Список опубликованных вакансий.
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+        previous:
+          type: string
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vacancy'
+    UserCredentials:
+      description: Учетные данные пользователя
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+  responses:
+    403Forbidden:
+      description: Доступ только для авторизованных пользователей.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              reason:
+                type: string
+                example: 'Access authenticated only.'
+tags:
+- name: 'Public'
+  description: Публичный API
+- name: 'Admin'
+  description: API для админки
+- name: 'Search'
+  description: Поиск
+- name: 'Auth'
+  description: API системы авторизации
+paths:
+  /public/vacancies:
+    get:
+      tags:
+      - 'Public'
+      description: Список опубликованных вакансий.
+      parameters:
+      - name: "modified_at"
+        description: Вернуть вакансии обновленные указанной датой.
+        in: query
+        schema:
+          type: string
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        required: false
+        description: Количесто вакансий, которые нужно пропустить для начала выборки.
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        required: false
+        description: Количество возвращаемых вакансий.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VacancyList'
+    post:
+      tags:
+      - 'Public'
+      description: Предложить вакансию через форму обратной связи.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VacancySuggest'
+      responses:
+        '201':
+          description: Вакансия на модерации.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VacancySuggest'
+  /public/vacancies/{id}:
+    get:
+      tags:
+      - 'Public'
+      description: Информация об опубликованной вакансии.
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "ID вакансии."
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vacancy'
+  /search/vacancies:
+    get:
+      tags:
+      - 'Search'
+      description: Поиск вакансий.
+      parameters:
+      - name: "date_from"
+        description: Вернуть вакансии начиная от указанной даты.
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: "date_to"
+        description: Вернуть вакансии начиная до указанной даты.
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: "search_query"
+        description: Поиск по фразе.
+        in: query
+        schema:
+          type: string
+      - name: "published_only"
+        description: Показывать не опубликованные. Только для аутентифицированнных пользователей.
+        in: query
+        schema:
+          type: string
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        required: false
+        description: Количесто вакансий, которые нужно пропустить для начала выборки.
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        required: false
+        description: Количество возвращаемых вакансий.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VacancyList'
+  /auth/login:
+    post:
+      tags:
+      - 'Auth'
+      description: Вход в систему администрирования
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCredentials'
+      responses:
+        '200':
+          description: Успешный вход в систему
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jwt_token:
+                    type: string
+                  user:
+                    type: string
+        '401':
+          description: Предоставлены неверные учетные данные.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reason:
+                    type: string
+                    example: 'Invalid user credentials.'
+  /auth/logout:
+    get:
+      tags:
+      - 'Auth'
+      description: Выход из системы путем ивалидации JWT токена.
+      responses:
+        '200':
+          description: JWT Токен инвалидирован.
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+  /private/vacancies:
+    get:
+      tags:
+      - 'Admin'
+      description: Список всех вакансий.
+      parameters:
+      - name: "modified_at"
+        description: Вернуть вакансии обновленные указанной датой.
+        in: query
+        schema:
+          type: string
+      - name: "source_name"
+        description: Вернуть вакансии из указанного источника.
+        in: query
+        schema:
+          type: string
+      - name: "is_published"
+        description: Вернуть только опубликованные вакансии.
+        in: query
+        schema:
+          type: boolean
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        required: false
+        description: Количесто вакансий, которые нужно пропустить для начала выборки.
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        required: false
+        description: Количество возвращаемых вакансий.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VacancyList'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+    post:
+      tags:
+      - 'Admin'
+      description: Добавить вакансию.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VacancyData'
+      responses:
+        '201':
+          description: Вакансия на модерации.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vacancy'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+    delete:
+      tags:
+      - "Admin"
+      description: Удалить несколько вакансий.
+      parameters:
+      - name: "id"
+        description: Список ID вакансий для удаления, если не указан то ни одна вакансия не будет удалена.
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: Вакансии удалены.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  delete:
+                    type: integer
+                    example: 5
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+  /private/vcancies/{id}:
+    get:
+      tags:
+      - 'Admin'
+      description: Информация о вакансии.
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "ID вакансии."
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vacancy'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+    put:
+      tags:
+      - 'Admin'
+      description: Обновить все поля вакансии.
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "ID вакансии."
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VacancyData'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vacancy'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+    patch:
+      tags:
+      - 'Admin'
+      description: Обновить опциональные поля вакансии.
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "ID вакансии."
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VacancyData'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vacancy'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+    delete:
+      tags:
+      - 'Admin'
+      description: Удалить вакансию.
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "ID вакансии."
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: Deleted
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+    
+            
+                
+      

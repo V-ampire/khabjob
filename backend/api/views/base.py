@@ -1,3 +1,4 @@
+"""Base API resources views classes."""
 from aiohttp import web
 
 from aiohttp_cors import CorsViewMixin
@@ -39,7 +40,7 @@ class BaseView(CorsViewMixin, web.View):
         """Implement handler to return filtered list of items."""
         raise NotImplementedError
 
-    async def detail(self, *args, **kwargs)  -> Mapping:
+    async def detail(self, *args, **kwargs) -> Mapping:
         """Implement handler to return info about one item."""
         raise NotImplementedError
 
@@ -76,7 +77,6 @@ class BaseView(CorsViewMixin, web.View):
         if self.lookup_field in self.request.match_info:
             return await self.delete_one(*args, **kwargs)
         return await self.delete_list(*args, **kwargs)
-
 
 
 class BaseVacancyView(DbViewMixin, BaseView):
@@ -161,7 +161,7 @@ class BaseVacancyView(DbViewMixin, BaseView):
         
         If IDs didnt pass return 0 (0 rows was deleted).
         """
-        if not self.lookup_field in options:
+        if self.lookup_field not in options:
             return 0
 
         vacancy_ids = options.getall(self.lookup_field)

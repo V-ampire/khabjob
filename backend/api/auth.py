@@ -1,3 +1,4 @@
+"""Utils for authentication API requests."""
 from aiohttp import web
 
 from aiopg.sa import SAConnection

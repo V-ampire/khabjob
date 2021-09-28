@@ -1,3 +1,6 @@
+"""
+Aiohttp application initialization handler.
+"""
 from aiohttp import web, PAYLOAD_REGISTRY
 
 import aiohttp_cors
@@ -8,13 +11,12 @@ from api.middleware import jwt_auth_middleware
 from api.routes import setup_routes
 from api.payloads import JsonPayload
 
-import logging
 from typing import Dict, Mapping, Optional
 from types import MappingProxyType
 
 from core.db.utils import get_postgres_dsn
 
-from config import CORS_CONFIG, LOG_CONFIG, DEBUG
+from config import CORS_CONFIG
 
 
 async def setup_db(app: web.Application):
@@ -47,7 +49,7 @@ def setup_cors(app: web.Application):
         cors.add(route)
 
 
-def init_app(config: Optional[Dict]=None) -> web.Application:
+def init_app(config: Optional[Dict] = None) -> web.Application:
     """Initialize apllication."""
     middlewares = [
         jwt_auth_middleware,

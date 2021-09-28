@@ -1,4 +1,4 @@
 [flake8]
 exclude = tests,alembic,config.py
-ignore = I001, I004, W291, D104
+ignore = I001, I004, W291, D104, DAR101, I005, I003
 max-line-length = 100

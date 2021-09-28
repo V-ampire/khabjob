@@ -1,3 +1,6 @@
+"""
+Helpers for processing API requests and responses.
+"""
 from aiohttp import web
 
 import json
@@ -8,8 +11,8 @@ from typing import Dict, Optional, Any
 def get_pagination_params(
     url: URL,
     count: int,
-    limit: int=0,
-    offset: int=0
+    limit: int = 0,
+    offset: int = 0
 ) -> Dict[str, Optional[str]]:
     """
     Return pagination params for resource.

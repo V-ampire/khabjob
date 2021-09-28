@@ -1,3 +1,4 @@
+"""Utils to run parsers and processing results."""
 import asyncio
 
 import aiohttp
@@ -26,13 +27,13 @@ PARSERS_REGISTRY = {
 logger = logging.getLogger(__name__)
 
 
-async def parse_vacancies_to_db(parsers: List[str]=[]):
+async def parse_vacancies_to_db(parsers: Optional[List[str]] = None):
     """
     Parse vacancies and save to database.
     
     :param parsers: If passed then only passed parsers will be run.
     """
-    if len(parsers) > 0:
+    if parsers is not None:
         configs = dict(filter(lambda x: x[0] in parsers, PARSERS_CONFIG.items()))
     else:
         configs = PARSERS_CONFIG
@@ -66,9 +67,9 @@ async def parse_vacancies_to_db(parsers: List[str]=[]):
                     ))
 
                     
-async def run_parsers(parsers: List[str]=[]) -> List[Dict[str, str]]:
+async def run_parsers(parsers: Optional[List[str]] = None) -> List[Dict[str, str]]:
     """Run parser and return results as list of dicts."""
-    if len(parsers) > 0:
+    if parsers is not None:
         configs = dict(filter(lambda x: x[0] in parsers, PARSERS_CONFIG.items()))
     else:
         configs = PARSERS_CONFIG

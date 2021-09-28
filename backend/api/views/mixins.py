@@ -6,9 +6,6 @@ from aiohttp import web
 
 from aiopg.sa import Engine
 
-
-from pydantic import ValidationError
-
 from api.validation import utils as validation_utils
 from api.utils import get_pagination_params, get_request_payload
 
@@ -60,6 +57,7 @@ class ListMixin:
     If you want to use search you should override search_options on
     list of options for searching.
     """
+    
     pagination_limit = 20
 
     @property
@@ -100,7 +98,7 @@ class DetailMixin:
 
     async def get_detail(self, *args, **kwargs):
         """Handler for method GET for one item."""
-        if not self.lookup_field in self.request.match_info:
+        if self.lookup_field not in self.request.match_info:
             raise web.HTTPNotFound()
         lookup = self.request.match_info[self.lookup_field]
         result = await self.detail(lookup)
@@ -130,7 +128,7 @@ class UpdateMixin:
         
         :return: Tuple (lookup, data) where lookup is value of lookup field.
         """
-        if not self.lookup_field in self.request.match_info:
+        if self.lookup_field not in self.request.match_info:
             raise web.HTTPNotFound()
         lookup = self.request.match_info[self.lookup_field]
 
@@ -165,7 +163,7 @@ class DeleteMixin:
     
     async def delete_one(self, *args, **kwargs):
         """Delete item."""
-        if not self.lookup_field in self.request.match_info:
+        if self.lookup_field not in self.request.match_info:
             raise web.HTTPNotFound()
         lookup = self.request.match_info[self.lookup_field]
         deleted_count = await self.destroy(lookup)

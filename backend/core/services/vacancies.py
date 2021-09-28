@@ -39,7 +39,7 @@ async def create_or_update_vacancy(
     insert_stmt = pg_insert(vacancies_table).values(**vacancy_data).returning(vacancies_table)
     do_update_stmt = insert_stmt.on_conflict_do_update(index_elements=['source'], set_=vacancy_data)
     result = await conn.execute(do_update_stmt)
-    vacancy =  await result.fetchone()
+    vacancy = await result.fetchone()
     is_created = vacancy.created_at == datetime.utcnow().date()
     return (is_created, vacancy)
 
@@ -56,8 +56,8 @@ async def create_vacancy_batch(
 
 async def filter_vacancies(
     conn: SAConnection, 
-    limit: Optional[int]=None,
-    offset: int=0,
+    limit: Optional[int] = None,
+    offset: int = 0,
     **options
 ) -> List[RowProxy]:
     """
@@ -68,22 +68,22 @@ async def filter_vacancies(
     :param options: Options to filter vacancies.
     """
     columns = except_tsvector_columns(vacancies_table)
-    stmt = select(*columns, func.count().over().label("count"))
+    stmt = select(*columns, func.count().over().label('count'))
     stmt = stmt.filter_by(**options).limit(limit).offset(offset).order_by(
-                vacancies_table.c.modified_at, vacancies_table.c.source_name,
-            )
+        vacancies_table.c.modified_at, vacancies_table.c.source_name,
+    )
     result = await conn.execute(stmt)
     return await result.fetchall()
 
 
 async def search_vacancies(
     conn: SAConnection, 
-    date_from: Optional[date]=None,
-    date_to: Optional[date]=None, 
-    search_query: Optional[str]=None, 
-    published_only: bool=True, 
-    limit: Optional[int]=None,
-    offset: int=0
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None, 
+    search_query: Optional[str] = None, 
+    published_only: bool = True, 
+    limit: Optional[int] = None,
+    offset: int = 0
 ) -> List[RowProxy]:
     """
     Search vacancies by params.
@@ -98,7 +98,7 @@ async def search_vacancies(
     :return: list of found vacancies and count of all found items.
     """
     columns = except_tsvector_columns(vacancies_table)
-    stmt = select(*columns, func.count().over().label("count"))
+    stmt = select(*columns, func.count().over().label('count'))
     
     if published_only:
         stmt = stmt.filter_by(is_published=True)
@@ -134,7 +134,7 @@ async def update_vacancy(
     """
     columns = except_tsvector_columns(vacancies_table)
     stmt = update(vacancies_table).where(
-        vacancies_table.c.id==vacancy_id
+        vacancies_table.c.id == vacancy_id
     ).values(**vacancy_data).returning(*columns)
 
     result = await conn.execute(stmt)
@@ -149,11 +149,12 @@ async def delete_vacancy(conn: SAConnection, vacancy_id: int) -> int:
 
     Return number of deleted rows.
     """
-    stmt = delete(vacancies_table).where(vacancies_table.c.id==vacancy_id)
+    stmt = delete(vacancies_table).where(vacancies_table.c.id == vacancy_id)
 
     result = await conn.execute(stmt)
     return result.rowcount
 conn: SAConnection
+
 
 async def delete_vacancy_batch(conn: SAConnection, vacancy_ids: List[int]) -> int:
     """

@@ -1,6 +1,4 @@
-"""
-Views for public API interface.
-"""
+"""Views for public API interface."""
 from api.views.base import BaseVacancyView
 from api.views.mixins import (
     ListMixin,
@@ -13,7 +11,6 @@ from api.validation.vacancies import (
     PublicFilterOptions,
 )
 
-from aiohttp import web
 from config import SELF_SOURCE_NAME
 
 

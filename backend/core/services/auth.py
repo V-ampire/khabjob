@@ -1,3 +1,6 @@
+"""
+Business logic to operate with authentication.
+"""
 from aiopg.sa import SAConnection
 from aiopg.sa.result import RowProxy
 
@@ -15,7 +18,7 @@ async def create_user(conn: SAConnection, username: str, password: str) -> RowPr
     """Add user to database."""
     password_hash = hash_password(password)
 
-    stmt =  insert(users_table).values(
+    stmt = insert(users_table).values(
         username=username,
         password_hash=password_hash
     ).returning(users_table)
@@ -46,8 +49,7 @@ async def update_user(conn: SAConnection, user_id: int, **update_data) -> Option
     return await result.fetchone()
 
 
-
-def hash_password(password: str, salt: Optional[str]=None) -> str:
+def hash_password(password: str, salt: Optional[str] = None) -> str:
     """Turn a plain-text password into a hash for database storage."""
     if salt is None:
         salt = AUTH_CONFIG['SECRET_KEY']
@@ -60,7 +62,7 @@ def hash_password(password: str, salt: Optional[str]=None) -> str:
     return bytes_hash.hex()
 
 
-def is_password_confirm(password: str, password_hash: str, salt: Optional[str]=None) -> bool:
+def is_password_confirm(password: str, password_hash: str, salt: Optional[str] = None) -> bool:
     """Compare password with calculated hash for this password."""
     return password_hash == hash_password(password, salt=salt)
 

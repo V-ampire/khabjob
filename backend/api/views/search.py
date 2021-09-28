@@ -1,5 +1,4 @@
-from aiohttp import web
-
+"""Views for searching."""
 from aiopg.sa.result import RowProxy
 
 from typing import List

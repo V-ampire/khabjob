@@ -1,3 +1,4 @@
+"""App loggers."""
 import logging
 from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
 from queue import Queue
@@ -34,15 +35,12 @@ class QueueFileHandler(QueueHandler):
     def setFormatter(self, formatter: logging.Formatter) -> None:
         """
         Set formatter to handler.
+        
         :param formatter: Formatter instance.
         """
         self.handler.setFormatter(formatter)
 
     def close(self) -> None:
-        """
-        Wait till all records will be processed then stop listener.
-        """
+        """Wait till all records will be processed then stop listener."""
         self.listener.stop()
         super().close()
-
-

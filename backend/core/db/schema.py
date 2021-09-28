@@ -1,3 +1,6 @@
+"""
+Database schema description.
+"""
 from sqlalchemy import (
     MetaData, Table, Column, Computed,
     Integer, String, Date, Boolean, Index
@@ -27,7 +30,7 @@ vacancies_table = Table(
     Column('description', String(1024), nullable=True),
     Column('is_published', Boolean, server_default='t', nullable=False),
     Column('search_index', TSVECTOR, Computed(text("to_tsvector('russian', name)"))),
-    Index("vacancies_idx_column", 'search_index', postgresql_using='gin')
+    Index('vacancies_idx_column', 'search_index', postgresql_using='gin')
 )
 
 

@@ -1,3 +1,4 @@
+"""API auth views."""
 from aiohttp import web
 
 from aiohttp_cors import CorsViewMixin

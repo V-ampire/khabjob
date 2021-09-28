@@ -10,10 +10,9 @@ from pydantic import (
 
 import asyncio
 import click
-from datetime import datetime
 import logging
 from logging.config import dictConfig
-from typing import List
+from typing import List, Optional
 
 from api.app import init_app
 from api.validation.auth import validate_password_format
@@ -27,12 +26,16 @@ from jobparser.utils import parse_vacancies_to_db, run_parsers
 from config import LOG_CONFIG, DEBUG, VACANCY_EXPIRED
 
 
-async def echo_parsers_results(parsers: List[str]=[]):
+async def echo_parsers_results(parsers: Optional[List[str]] = None):
+    """Output parses results."""
+    if parsers is None:
+        parsers = []
     results = await run_parsers(parsers)
     click.echo(results)
 
 
 async def add_user(username: str, password: str):
+    """Create new user and output message."""
     async with create_engine(get_postgres_dsn()) as aio_engine:
         async with aio_engine.acquire() as conn:
             await create_user(conn, username, password)
@@ -41,17 +44,19 @@ async def add_user(username: str, password: str):
 
 
 async def clean_up_expired_vacancies():
+    """Clean up dtatabase and output message."""
     async with create_engine(get_postgres_dsn()) as aio_engine:
         async with aio_engine.acquire() as conn:
             deleted_count = await delete_expired_vacancies(conn, VACANCY_EXPIRED)
 
     click.echo(
-        click.style('{0} vacancies were deleted!'.format(deleted_count), fg='green')
+        click.style('{0} vacancies were deleted!'.format(deleted_count), fg='green'),
     )
 
 
-
 class UserCredentials(BaseModel):
+    """Validate user credentials to create user."""
+
     username: str
     password1: str
     password2: str
@@ -70,7 +75,7 @@ class UserCredentials(BaseModel):
 
 @click.group()
 def cli():
-    pass
+    """Initialize CLI."""
 
 
 @click.command(name='init_db')
@@ -82,14 +87,14 @@ def initdb():
 
 
 @click.command(name='update_vacancies')
-@click.option('-p', '--parsers', multiple=True, help="Names of parsers to run.")
+@click.option('-p', '--parsers', multiple=True, help='Names of parsers to run.')
 def updatevacancies(parsers: List[str]):
     """Parse vacancies and save it yo database."""
     asyncio.run(parse_vacancies_to_db(parsers))
     
 
 @click.command(name='run_parsers')
-@click.option('-p', '--parsers', multiple=True, help="Names of parsers to run.")
+@click.option('-p', '--parsers', multiple=True, help='Names of parsers to run.')
 def runparsers(parsers: List[str]):
     """Run parsers."""
     asyncio.run(echo_parsers_results(parsers))
@@ -115,7 +120,7 @@ def createuser():
     user_credentials = UserCredentials(
         username=username,
         password1=password1,
-        password2=password2
+        password2=password2,
     )
 
     asyncio.run(add_user(user_credentials.username, user_credentials.password1))
@@ -123,6 +128,7 @@ def createuser():
 
 @click.command(name='drop_expired_vacancies')
 def dropexpired():
+    """Drop expired vacancies."""
     asyncio.run(clean_up_expired_vacancies())
 
 
