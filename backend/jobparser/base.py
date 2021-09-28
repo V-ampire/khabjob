@@ -38,7 +38,7 @@ class BaseParser:
             self.parse_url = config['parse_url']
         except KeyError:
             raise ParserConfigError(
-                'You must set 'parse_url' parameter in parser config.'
+                'You must set "parse_url" parameter in parser config.'
             )
 
         self.config = config

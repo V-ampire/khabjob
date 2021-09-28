@@ -184,13 +184,13 @@ async def authenticate_user(conn: SAConnection, **user_credentials) -> User:
     """
     Authenticate user by credentials.
 
-    If success return User, else raise HTTPBadRequest 400.
+    If success return User, else raise HTTPUnauthorized 401.
     """
     password = user_credentials.pop('password')
     user = await get_user(conn, **user_credentials)
 
     if user is None or not is_password_confirm(password, user.password_hash):
-        raise web.HTTPBadRequest(
+        raise web.HTTPUnauthorized(
             text=json.dumps({'reason': 'Invalid user credentials.'}),
             content_type='application/json',
         )
