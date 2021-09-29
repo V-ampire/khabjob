@@ -10,9 +10,7 @@
 - `pytest` - тесты
 
 
-## Деплой
-
-Установить следующие переменные окружения:
+## Переменные окружения
 
 ```
 # Режим дебага, off для production
@@ -46,13 +44,16 @@ POSTGRES_PORT=
 ```
 
 
-
-
 ## Команды:
 
 Запускает парсинг вакансий и сохраняет их в базу данных.
 
 - `python main.py update_vacancies`
+
+
+Запускает очистку старых вакансий.
+
+- `python main.py drop_expired_vacancies`
 
 
 Запускает парсинг вакансий и выводит их в консоль.
@@ -65,7 +66,7 @@ POSTGRES_PORT=
 - `python main.py run_app`
 
 
-Инициализирует базу данных.
+Инициализирует базу данных и обновляет вакансии.
 
 - `python main.py init_db`
 
@@ -88,6 +89,8 @@ POSTGRES_PORT=
 
 
 ## Разработка
+
+- Автоматически сгенерировать миграцию БД: `alembic revision --autogenerate -m "<description>"`
 
 - Запуск миграций: `alembic upgrade head`
 

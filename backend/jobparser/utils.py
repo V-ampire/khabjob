@@ -33,11 +33,11 @@ async def parse_vacancies_to_db(parsers: Optional[List[str]] = None):
     
     :param parsers: If passed then only passed parsers will be run.
     """
-    if parsers is not None:
+    if parsers:
         configs = dict(filter(lambda x: x[0] in parsers, PARSERS_CONFIG.items()))
     else:
         configs = PARSERS_CONFIG
-
+    
     tasks = []
 
     async with aiohttp.ClientSession() as session:
@@ -69,7 +69,7 @@ async def parse_vacancies_to_db(parsers: Optional[List[str]] = None):
                     
 async def run_parsers(parsers: Optional[List[str]] = None) -> List[Dict[str, str]]:
     """Run parser and return results as list of dicts."""
-    if parsers is not None:
+    if parsers:
         configs = dict(filter(lambda x: x[0] in parsers, PARSERS_CONFIG.items()))
     else:
         configs = PARSERS_CONFIG

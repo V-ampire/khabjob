@@ -25,7 +25,7 @@ vacancies_table = Table(
         onupdate=datetime.utcnow().date()
     ),
     Column('name', String(264), nullable=False),
-    Column('source', String(128), nullable=True, unique=True),
+    Column('source', String(264), nullable=True, unique=True),
     Column('source_name', String(16), nullable=False),
     Column('description', String(1024), nullable=True),
     Column('is_published', Boolean, server_default='t', nullable=False),
