@@ -1,2 +1,2 @@
-0 10 * * * template_path/backend/.venv/bin/python template_path/backend/main.py update_vacancies
-01 10 * * * template_path/backend/.venv/bin/python template_path/backend/main.py drop_expired_vacancies
+0 0 * * * template_path/backend/.venv/bin/python template_path/backend/main.py update_vacancies
+1 0 * * * template_path/backend/.venv/bin/python template_path/backend/main.py drop_expired_vacancies
