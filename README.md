@@ -16,7 +16,7 @@
     - PostgresQL
 
 - Клиентская часть в виде SPA написана на:
-    - Vue JS
+    - Vue JS 2
     - Axios
     - BootstrapVue
 
@@ -39,7 +39,7 @@
 
 ### Фронтенд
 
-Установить переменные окружения см. [фронтенд](/frontend/README.d)
+Установить переменные окружения см. [описание фронтенда](/frontend/README.md)
 
 ```
 $ cd frontend
@@ -51,6 +51,19 @@ $ sudo service nginx restart
 
 ### Бэкенд
 
-```
+Установить переменные окружения см. [описание бэкенда](/backend/README.md)
 
 ```
+$ source scripts/init_backend.sh
+$ sudo systemctl daemon-reload
+$ sudo systemctl start khabjob.server
+$ sudo systemctl enable khabjob.server
+$ sudo chmod 664 /tmp/khabjob.sock
+$ sudo service nginx restart
+```
+
+
+Настройка автоматического обновления и очистки старых вакансий:
+
+`$ crontab scripts/crontab`
+
