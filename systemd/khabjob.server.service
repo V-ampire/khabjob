@@ -3,8 +3,8 @@ Description=run server for khabjob.ru
 After=network.target
 
 [Service]
-User=django
-Group=django
+User=www-data
+Group=www-data
 WorkingDirectory=template_path/backend
 ExecStart=template_path/backend/.venv/bin/python template_path/backend/main.py run_app --path=/tmp/khabjob.sock
 Restart=on-failure

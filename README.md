@@ -66,7 +66,7 @@ $ source scripts/init_backend.sh
 $ sudo systemctl daemon-reload
 $ sudo systemctl start khabjob.server
 $ sudo systemctl enable khabjob.server
-$ sudo chmod 664 /tmp/khabjob.sock
+$ sudo chmod 666 /tmp/khabjob.sock
 $ sudo service nginx restart
 ```
 
