@@ -4,7 +4,7 @@ from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
 from queue import Queue
 
 
-DEFAULT_LOGFILE_SIZE = 2000
+DEFAULT_LOGFILE_SIZE = 200000
 DEFAULT_BACKUP_COUNT = 20
 
 
